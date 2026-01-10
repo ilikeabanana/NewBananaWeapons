@@ -18,7 +18,9 @@ public class OarWeapon : MonoBehaviour
     Animator anim;
 
     float charge = 0;
-    float maxCharge = 7.5f;
+    float maxCharge = 8.5f;
+
+    float cooldown = 0.0f;
 
     EnemyIdentifier targetedEID;
     GameObject lightningBoltWindUp = null;
@@ -33,7 +35,6 @@ public class OarWeapon : MonoBehaviour
 
     public void AttackForward()
     {
-        float force = 48;
         NewMovement.Instance.Launch(CameraController.Instance.transform.forward, force, true);
     }
 
@@ -41,7 +42,8 @@ public class OarWeapon : MonoBehaviour
     void Update()
     {
         anim.SetBool("Holding", MonoSingleton<InputManager>.Instance.InputSource.Fire1.IsPressed);
-        anim.SetBool("Rightclick", MonoSingleton<InputManager>.Instance.InputSource.Fire2.IsPressed);
+        if(cooldown <= 0)
+            anim.SetBool("Rightclick", MonoSingleton<InputManager>.Instance.InputSource.Fire2.IsPressed);
         if (damageActive)
         {
             Collider[] hits = Physics.OverlapSphere(transform.position, attackRadius);
@@ -60,7 +62,12 @@ public class OarWeapon : MonoBehaviour
             }
         }
 
-        if (MonoSingleton<InputManager>.Instance.InputSource.Fire2.WasPerformedThisFrame)
+        if(cooldown > 0)
+        {
+            cooldown -= Time.deltaTime;
+        }
+
+        if (MonoSingleton<InputManager>.Instance.InputSource.Fire2.WasPerformedThisFrame && cooldown <= 0)
         {
             if(targetedEID == null)
             {
@@ -112,10 +119,11 @@ public class OarWeapon : MonoBehaviour
     void StopCharge()
     {
         GameObject explosion = Instantiate(AddressableManager.lightningBolt, lightningBoltWindUp.transform.position, Quaternion.identity);
-        explosion.GetComponent<LightningStrikeExplosive>().damageMultiplier = (charge*2) / maxCharge;
+        explosion.GetComponent<LightningStrikeExplosive>().damageMultiplier = (charge*1.5f) / maxCharge;
         Destroy(lightningBoltWindUp);
         targetedEID = null;
         charge = 0;
+        cooldown = (charge / maxCharge) * 3;
     }
     public void activateDamage()
     {
