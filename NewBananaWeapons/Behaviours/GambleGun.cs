@@ -191,7 +191,12 @@ public class GambleGun : MonoBehaviour
         if (fireMode == 0)
             source.PlayOneShot(lossClip);
         else
-            source.PlayOneShot(winClip);
+        {
+            StyleHUD.Instance.AddPoints(500, "<color=cyan>Jackpot!</color>", gameObject);
+
+            source.PlayOneShot(winClip); 
+        }
+            
         GameObject projectile = Instantiate(projectilesPerFireMode[fireMode], firePoint.transform.position, firePoint.transform.rotation);
         Vector3 targetPoint;
 

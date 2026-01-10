@@ -271,6 +271,20 @@ namespace NewBananaWeapons
                 }
             }
 
+            if (Input.GetKeyDown(KeyCode.Insert))
+            {
+                GameObject mockGun = new GameObject("mockgun");
+                mockGun.SetActive(false);
+                mockGun.AddComponent<WeaponIcon>();
+                mockGun.AddComponent<WeaponIdentifier>();
+                mockGun.AddComponent<WeaponPos>();
+
+                mockGun.AddComponent<TheForceWeapon>();
+
+                MakeGun(5, mockGun);
+            }
+
+
             if (BundleArms == null || BundleArms.Count == 0) return;
             foreach (GameObject obj in BundleArms)
             {

@@ -123,8 +123,9 @@ public class OarWeapon : MonoBehaviour
         explosion.GetComponent<LightningStrikeExplosive>().damageMultiplier = (charge*1.5f) / maxCharge;
         Destroy(lightningBoltWindUp);
         targetedEID = null;
-        charge = 0;
         cooldown = (charge / maxCharge) * 3;
+        charge = 0;
+        
     }
     public void activateDamage()
     {
