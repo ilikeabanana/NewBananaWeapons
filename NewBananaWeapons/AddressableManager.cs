@@ -10,6 +10,8 @@ namespace NewBananaWeapons
     {
         public static GameObject lightningBoltWindup;
         public static GameObject lightningBolt;
+        public static GameObject mauriceBeam;
+        public static GameObject normalBeam;
         public static void GetAssets()
         {
             Banana_WeaponsPlugin.Instance.StartCoroutine(
@@ -23,6 +25,18 @@ namespace NewBananaWeapons
                 (result) =>
                 {
                     lightningBolt = result;
+                }));
+            Banana_WeaponsPlugin.Instance.StartCoroutine(
+                loadAsset("Assets/Prefabs/Attacks and Projectiles/Hitscan Beams/Railcannon Beam Malicious.prefab",
+                (result) =>
+                {
+                    mauriceBeam = result;
+                }));
+            Banana_WeaponsPlugin.Instance.StartCoroutine(
+                loadAsset("Assets/Prefabs/Attacks and Projectiles/Hitscan Beams/Revolver Beam.prefab",
+                (result) =>
+                {
+                    normalBeam = result;
                 }));
         }
 

@@ -13,7 +13,8 @@ public class OarWeapon : MonoBehaviour
     AudioSource source;
     bool damageActive = false;
     float attackRadius = 2.5f;
-    float force = 5000;
+    float forceEnemy = 5000;
+    float forcePlayer = 72;
     float damage = 5;
     Animator anim;
 
@@ -35,7 +36,7 @@ public class OarWeapon : MonoBehaviour
 
     public void AttackForward()
     {
-        NewMovement.Instance.Launch(CameraController.Instance.transform.forward, force, true);
+        NewMovement.Instance.Launch(CameraController.Instance.transform.forward, forcePlayer, true);
     }
 
     // Update is called once per frame
@@ -55,7 +56,7 @@ public class OarWeapon : MonoBehaviour
                     {
                         if (hitEnemies.Contains(enemyHit.eid)) continue;
                         enemyHit.eid.hitter = "oar";
-                        enemyHit.eid.DeliverDamage(hit.gameObject, CameraController.Instance.transform.forward * force * 20, enemyHit.transform.position, damage, false);
+                        enemyHit.eid.DeliverDamage(hit.gameObject, CameraController.Instance.transform.forward * forceEnemy * 20, enemyHit.transform.position, damage, false);
                         hitEnemies.Add(enemyHit.eid);
                     }
                 }
