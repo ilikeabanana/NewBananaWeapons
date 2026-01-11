@@ -44,15 +44,14 @@ public class TheForceWeapon : MonoBehaviour
         }
 
         Transform camTransform = CameraController.Instance.transform;
-        if (InputManager.Instance.InputSource.Fire1.IsPressed)
+        if (InputManager.Instance.InputSource.Fire1.IsPressed && cooldown <= 0)
         {
-            
             if (currentTarget != null)
             {
                 if (!currentTarget.bigEnemy)
                 {
                     Vector3 targetPosition;
-
+                   
                     if (Physics.Raycast(camTransform.position, camTransform.forward, out RaycastHit hit,
                         distance, LayerMaskDefaults.Get(LMD.Environment)))
                     {
@@ -130,7 +129,7 @@ public class TheForceWeapon : MonoBehaviour
                 }
                 else
                 {
-                    StyleHUD.Instance.AddPoints(100, "Imploded", gameObject);
+                    StyleHUD.Instance.AddPoints(100, "IMPLODED", gameObject);
                     currentTarget.Explode(false);
                 }
                 if (manipulationEffectCurrent != null)

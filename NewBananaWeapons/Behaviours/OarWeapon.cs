@@ -15,7 +15,7 @@ public class OarWeapon : MonoBehaviour
     float attackRadius = 2.5f;
     float forceEnemy = 5000;
     float forcePlayer = 72;
-    float damage = 5;
+    float damage = 3.5f;
     Animator anim;
 
     float charge = 0;

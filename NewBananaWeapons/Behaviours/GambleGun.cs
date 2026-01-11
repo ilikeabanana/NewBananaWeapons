@@ -192,7 +192,7 @@ public class GambleGun : MonoBehaviour
             source.PlayOneShot(lossClip);
         else
         {
-            StyleHUD.Instance.AddPoints(500, "<color=cyan>Jackpot!</color>", gameObject);
+            StyleHUD.Instance.AddPoints(500, "<color=#00ffffff>JACKPOT!</color>", gameObject);
 
             source.PlayOneShot(winClip); 
         }
