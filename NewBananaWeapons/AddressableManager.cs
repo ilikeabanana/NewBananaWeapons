@@ -12,6 +12,7 @@ namespace NewBananaWeapons
         public static GameObject lightningBolt;
         public static GameObject mauriceBeam;
         public static GameObject normalBeam;
+        public static GameObject manipulationEffect;
         public static void GetAssets()
         {
             Banana_WeaponsPlugin.Instance.StartCoroutine(
@@ -37,6 +38,12 @@ namespace NewBananaWeapons
                 (result) =>
                 {
                     normalBeam = result;
+                }));
+            Banana_WeaponsPlugin.Instance.StartCoroutine(
+                loadAsset("Assets/Prefabs/Sandbox/Manipulated Object Particles.prefab",
+                (result) =>
+                {
+                    manipulationEffect = result;
                 }));
         }
 
