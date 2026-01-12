@@ -34,6 +34,7 @@ public class PotassiumWeapon : MonoBehaviour
         if (currentCar != null)
         {
             UpdateCarPosition();
+            CheckForEnemies();
         }
         UpdateLine();
         
@@ -59,6 +60,47 @@ public class PotassiumWeapon : MonoBehaviour
                 return;
             }
         }
+    }
+
+    void CheckForEnemies()
+    {
+        Collider[] cols = Physics.OverlapSphere(currentCar.transform.position, 5);
+        if(cols.Length > 0)
+        {
+            foreach (var col in cols)
+            {
+                if(col.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
+                {
+                    KillEnemy(eidd.eid);
+                }
+            }
+        }
+    }
+
+    void KillEnemy(EnemyIdentifier eid)
+    {
+        GameObject knocked = Instantiate(eid.gameObject, eid.transform.position, eid.transform.rotation);
+
+        knocked.SetActive(false);
+
+        foreach (var comp in knocked.GetComponentsInChildren<Component>(true))
+        {
+            if (comp is Transform) continue;
+            if (comp is Renderer) continue;
+
+            DestroyImmediate(comp);
+        }
+
+        Rigidbody rb = knocked.AddComponent<Rigidbody>();
+
+        rb.AddForce(Vector3.up * 500, ForceMode.VelocityChange);
+
+        knocked.transform.Rotate(0f, 0f, 180f);
+        knocked.SetActive(true);
+
+        eid.InstaKill();
+        Destroy(eid.gameObject);
+
     }
 
     void UpdateLine()
