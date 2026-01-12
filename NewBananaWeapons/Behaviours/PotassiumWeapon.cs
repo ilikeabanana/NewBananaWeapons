@@ -71,13 +71,13 @@ public class PotassiumWeapon : MonoBehaviour
             {
                 if(col.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
                 {
-                    KillEnemy(eidd.eid);
+                    StartCoroutine(KillEnemy(eidd.eid));
                 }
             }
         }
     }
 
-    void KillEnemy(EnemyIdentifier eid)
+    IEnumerator KillEnemy(EnemyIdentifier eid)
     {
         GameObject knocked = Instantiate(eid.gameObject, eid.transform.position, eid.transform.rotation);
 
@@ -92,11 +92,14 @@ public class PotassiumWeapon : MonoBehaviour
         }
 
         Rigidbody rb = knocked.AddComponent<Rigidbody>();
-
-        rb.AddForce(Vector3.up * 500, ForceMode.VelocityChange);
+        
 
         knocked.transform.Rotate(0f, 0f, 180f);
         knocked.SetActive(true);
+        yield return new WaitForFixedUpdate();
+        rb.isKinematic = false;
+
+        rb.AddForce(Vector3.up * 50, ForceMode.VelocityChange);
 
         eid.InstaKill();
         Destroy(eid.gameObject);
