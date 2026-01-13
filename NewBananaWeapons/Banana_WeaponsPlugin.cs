@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 
 namespace NewBananaWeapons
@@ -30,7 +31,7 @@ namespace NewBananaWeapons
 
         public static Banana_WeaponsPlugin Instance { get; private set; }
 
-
+        public static Dictionary<GameObject, float> cooldowns = new Dictionary<GameObject, float>();
         private void Awake()
         {
             Instance = this;
@@ -260,7 +261,23 @@ namespace NewBananaWeapons
         void Update()
         {
 
-            if(funnySecret != null)
+            if (cooldowns.Count > 0)
+            {
+                // Copy keys to avoid modifying collection while iterating
+                var keys = new List<GameObject>(cooldowns.Keys);
+
+                foreach (var key in keys)
+                {
+                    cooldowns[key] -= Time.deltaTime;
+
+                    // Optional: remove finished cooldowns
+                    if (cooldowns[key] <= 0f)
+                        cooldowns.Remove(key);
+                }
+            }
+
+
+            if (funnySecret != null)
             {
                 if (Input.GetKeyDown(KeyCode.End))
                 {
