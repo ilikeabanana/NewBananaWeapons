@@ -296,7 +296,7 @@ namespace NewBananaWeapons
                 mockGun.AddComponent<WeaponIdentifier>();
                 mockGun.AddComponent<WeaponPos>();
 
-                mockGun.AddComponent<PotassiumWeapon>();
+                mockGun.AddComponent<KeyboardWeapon>();
 
                 MakeGun(5, mockGun);
             }
