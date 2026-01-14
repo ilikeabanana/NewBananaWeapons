@@ -1,13 +1,15 @@
 ﻿using NewBananaWeapons;
-using NewBananaWeapons.Behaviours.ProjectileBehaviours;
 using System;
 using System.Collections;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using TMPro;
 
 public class KeyboardWeapon : MonoBehaviour
 {
+    public GameObject projec;
+    public TMP_Text writing;
     StringBuilder builder = new StringBuilder();
     void OnDisable()
     {
@@ -74,6 +76,7 @@ public class KeyboardWeapon : MonoBehaviour
                 }
             }
         }
+        writing.text = builder.ToString() + "<color=#808080>Type to enter text, and hit Enter to fire...";
     }
 
     void CheckSpelling(string sentence)
@@ -94,13 +97,9 @@ public class KeyboardWeapon : MonoBehaviour
 
     public void FireWord(string word)
     {
-        GameObject projectile = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        projectile.transform.position = CameraController.Instance.transform.position;
-        projectile.transform.forward = CameraController.Instance.transform.forward;
-        WordProjectile wordProj = projectile.AddComponent<WordProjectile>();
+        GameObject projectile = Instantiate(projec, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
+        WordProjectile wordProj = projectile.GetComponent<WordProjectile>();
         wordProj.Word = word;
-        projectile.AddComponent<Rigidbody>().isKinematic = true;
-        projectile.GetComponent<Collider>().isTrigger = true;
     }
 
     IEnumerator fireProjectile(string[] words)
