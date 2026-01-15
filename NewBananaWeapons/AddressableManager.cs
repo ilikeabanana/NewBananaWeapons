@@ -13,38 +13,46 @@ namespace NewBananaWeapons
         public static GameObject mauriceBeam;
         public static GameObject normalBeam;
         public static GameObject manipulationEffect;
+        public static GameObject explosion;
         public static void GetAssets()
         {
-            Banana_WeaponsPlugin.Instance.StartCoroutine(
-                loadAsset("Assets/Particles/Environment/LightningBoltWindupFollow Variant.prefab",
+            loadAddressable("Assets/Particles/Environment/LightningBoltWindupFollow Variant.prefab",
                 (result) =>
                 {
                     lightningBoltWindup = result;
-                }));
-            Banana_WeaponsPlugin.Instance.StartCoroutine(
-                loadAsset("Assets/Prefabs/Attacks and Projectiles/Explosions/Lightning Strike Explosive.prefab",
+                });
+            loadAddressable("Assets/Prefabs/Attacks and Projectiles/Explosions/Lightning Strike Explosive.prefab",
                 (result) =>
                 {
                     lightningBolt = result;
-                }));
-            Banana_WeaponsPlugin.Instance.StartCoroutine(
-                loadAsset("Assets/Prefabs/Attacks and Projectiles/Hitscan Beams/Railcannon Beam Malicious.prefab",
+                });
+            loadAddressable("Assets/Prefabs/Attacks and Projectiles/Hitscan Beams/Railcannon Beam Malicious.prefab",
                 (result) =>
                 {
                     mauriceBeam = result;
-                }));
-            Banana_WeaponsPlugin.Instance.StartCoroutine(
-                loadAsset("Assets/Prefabs/Attacks and Projectiles/Hitscan Beams/Revolver Beam.prefab",
+                });
+            loadAddressable("Assets/Prefabs/Attacks and Projectiles/Hitscan Beams/Revolver Beam.prefab",
                 (result) =>
                 {
                     normalBeam = result;
-                }));
-            Banana_WeaponsPlugin.Instance.StartCoroutine(
-                loadAsset("Assets/Prefabs/Sandbox/Manipulated Object Particles.prefab",
+                });
+            loadAddressable("Assets/Prefabs/Sandbox/Manipulated Object Particles.prefab",
                 (result) =>
                 {
                     manipulationEffect = result;
-                }));
+                });
+            loadAddressable("Assets/Prefabs/Attacks and Projectiles/Explosions/Explosion Big.prefab",
+                (result) =>
+                {
+                    explosion = result;
+                });
+        }
+
+        static void loadAddressable(string path, Action<GameObject> onDone)
+        {
+            Banana_WeaponsPlugin.Instance.StartCoroutine(
+                loadAsset(path,
+                onDone));
         }
 
         static IEnumerator loadAsset(string path, Action<GameObject> onDone)
