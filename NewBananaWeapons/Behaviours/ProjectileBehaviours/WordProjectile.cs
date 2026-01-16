@@ -24,7 +24,6 @@ public class WordProjectile : MonoBehaviour
 
     EnemyIdentifier target;
 
-    // New effect variables
     private bool isBouncing;
     private int bounceCount = 0;
     private int maxBounces = 3;
@@ -37,9 +36,6 @@ public class WordProjectile : MonoBehaviour
     private bool isChaining;
     private int chainCount = 0;
     private int maxChains = 2;
-    private bool isFreezing;
-    private bool isBurning;
-    private float burnDuration = 0f;
     private bool isGravity;
     private Vector3 gravityVelocity = Vector3.zero;
     private bool isReversing;
@@ -79,7 +75,6 @@ public class WordProjectile : MonoBehaviour
 
     void Update()
     {
-        // Lifetime check to prevent infinite projectiles
         lifetime += Time.deltaTime;
         if (lifetime > maxLifetime)
         {
@@ -93,20 +88,17 @@ public class WordProjectile : MonoBehaviour
         }
         else if (isHoming)
         {
-            // Find new target if current one is dead
             List<EnemyIdentifier> enemies = EnemyTracker.Instance.GetCurrentEnemies();
             if (enemies.Count > 0)
                 target = enemies[Random.Range(0, enemies.Count)];
         }
 
-        // Growing effect
         if (isGrowing)
         {
             transform.localScale += Vector3.one * Time.deltaTime * 0.5f;
             projectileDamage += Time.deltaTime * 0.5f;
         }
 
-        // Shrinking effect
         if (isShrinking)
         {
             transform.localScale -= Vector3.one * Time.deltaTime * 0.3f;
@@ -115,13 +107,11 @@ public class WordProjectile : MonoBehaviour
                 Destroy(gameObject);
         }
 
-        // Spinning effect
         if (isSpinning)
         {
             transform.Rotate(Vector3.up * Time.deltaTime * 360f);
         }
 
-        // Phasing effect (toggles collision)
         if (isPhasing)
         {
             phaseTimer += Time.deltaTime;
@@ -136,7 +126,6 @@ public class WordProjectile : MonoBehaviour
             }
         }
 
-        // Pulsating effect
         if (isPulsating)
         {
             pulseTimer += Time.deltaTime * 5f;
@@ -144,7 +133,6 @@ public class WordProjectile : MonoBehaviour
             transform.localScale = Vector3.one * scale;
         }
 
-        // Reversing effect
         if (isReversing)
         {
             reverseTimer += Time.deltaTime;
@@ -155,10 +143,9 @@ public class WordProjectile : MonoBehaviour
             }
         }
 
-        // Gravity effect - now with forward momentum
         if (isGravity)
         {
-            gravityVelocity.y -= Time.deltaTime * 15f; // Gravity acceleration
+            gravityVelocity.y -= Time.deltaTime * 15f;
             Vector3 forwardVelocity = transform.forward * projectileSpeed;
             transform.position += (forwardVelocity + gravityVelocity) * Time.deltaTime;
         }
@@ -167,18 +154,17 @@ public class WordProjectile : MonoBehaviour
             transform.position += transform.forward * projectileSpeed * Time.deltaTime;
         }
 
-        // Multiplying effect - with limits
         if (isMultiplying && multiplyCount < maxMultiplies)
         {
             multiplyTimer += Time.deltaTime;
-            if (multiplyTimer > 1f) // Increased delay
+            if (multiplyTimer > 1f)
             {
                 GameObject clone = Instantiate(gameObject, transform.position + Random.insideUnitSphere * 2f, transform.rotation);
                 WordProjectile wp = clone.GetComponent<WordProjectile>();
                 wp.Adjectives.Clear();
-                wp.isMultiplying = false; // Clones don't multiply
+                wp.isMultiplying = false;
                 wp.projectileDamage *= 0.4f;
-                wp.maxLifetime = 3f; // Clones have short lifetime
+                wp.maxLifetime = 3f;
                 multiplyCount++;
                 multiplyTimer = 0f;
             }
@@ -235,7 +221,6 @@ public class WordProjectile : MonoBehaviour
                     healsPlayer = true;
                     break;
 
-                // NEW ADJECTIVES
                 case "bouncing":
                 case "bouncy":
                     isBouncing = true;
@@ -255,24 +240,20 @@ public class WordProjectile : MonoBehaviour
                     break;
                 case "phasing":
                 case "ghostly":
-                    isPhasing = true;
                     isPiercing = true;
                     break;
                 case "chaining":
                     isChaining = true;
-                    maxChains = 2; // Limit chains
+                    maxChains = 2;
                     break;
                 case "freezing":
                 case "frozen":
                 case "icy":
-                    isFreezing = true;
                     GetComponent<TMP_Text>().color = Color.cyan;
                     break;
                 case "burning":
                 case "flaming":
                 case "fiery":
-                    isBurning = true;
-                    burnDuration = 3f;
                     GetComponent<TMP_Text>().color = Color.red;
                     break;
                 case "gravity":
@@ -295,7 +276,7 @@ public class WordProjectile : MonoBehaviour
                 case "cloning":
                     isMultiplying = true;
                     projectileDamage *= 0.7f;
-                    maxMultiplies = 2; // Limit to 2 clones
+                    maxMultiplies = 2;
                     break;
                 case "unstable":
                     projectileSpeed *= Random.Range(0.3f, 3f);
@@ -400,7 +381,6 @@ public class WordProjectile : MonoBehaviour
                 isExplosive = true;
                 break;
 
-            // NEW WORDS
             case "bounce":
                 isBouncing = true;
                 maxBounces = 5;
@@ -417,14 +397,11 @@ public class WordProjectile : MonoBehaviour
                 break;
             case "freeze":
             case "frost":
-                isFreezing = true;
                 projectileSpeed *= 0.7f;
                 projectileDamage *= 1.2f;
                 break;
             case "burn":
             case "flame":
-                isBurning = true;
-                burnDuration = 5f;
                 projectileDamage *= 1.4f;
                 break;
             case "meteor":
@@ -432,7 +409,7 @@ public class WordProjectile : MonoBehaviour
                 isExplosive = true;
                 projectileDamage *= 2.5f;
                 transform.localScale *= 2f;
-                projectileSpeed *= 1.5f; // Give it forward momentum
+                projectileSpeed *= 1.5f;
                 break;
             case "vortex":
             case "spiral":
@@ -442,7 +419,6 @@ public class WordProjectile : MonoBehaviour
                 break;
             case "phantom":
             case "ghost":
-                isPhasing = true;
                 isPiercing = true;
                 projectileSpeed *= 1.5f;
                 break;
@@ -450,7 +426,7 @@ public class WordProjectile : MonoBehaviour
             case "swarm":
                 isMultiplying = true;
                 projectileDamage *= 0.6f;
-                maxMultiplies = 3; // Limit to 3 clones
+                maxMultiplies = 3;
                 break;
             case "pulse":
             case "beat":
@@ -538,13 +514,12 @@ public class WordProjectile : MonoBehaviour
         int layer = other.gameObject.layer;
         LayerMask mask = LayerMaskDefaults.Get(LMD.EnemiesAndEnvironment);
 
-        // Bouncing logic
         if (isBouncing && ((mask.value & (1 << layer)) != 0) && bounceCount < maxBounces)
         {
             Vector3 reflection = Vector3.Reflect(transform.forward, other.transform.up);
             transform.forward = reflection;
             bounceCount++;
-            projectileDamage *= 1.1f; // Damage increases with each bounce
+            projectileDamage *= 1.1f;
             return;
         }
 
@@ -565,28 +540,26 @@ public class WordProjectile : MonoBehaviour
 
             eid.DeliverDamage(other.gameObject, Vector3.zero, other.transform.position, damage, false);
 
-            // Splitting effect - reduced spawn count
             if (isSplitting && !isPiercing)
             {
-                for (int i = 0; i < 2; i++) // Reduced from 3 to 2
+                for (int i = 0; i < 2; i++) 
                 {
                     GameObject split = Instantiate(gameObject, transform.position, Quaternion.Euler(Random.insideUnitSphere * 30f));
                     WordProjectile wp = split.GetComponent<WordProjectile>();
                     wp.Adjectives.Clear();
                     wp.isSplitting = false;
-                    wp.projectileDamage *= 0.4f; // Reduced damage
+                    wp.projectileDamage *= 0.4f;
                     wp.projectileSpeed *= 0.8f;
                     wp.transform.localScale *= 0.7f;
-                    wp.maxLifetime = 3f; // Short lifetime for splits
+                    wp.maxLifetime = 3f;
                 }
             }
 
-            // Chaining effect - with limits
             if (isChaining && chainCount < maxChains)
             {
                 List<EnemyIdentifier> enemies = EnemyTracker.Instance.GetCurrentEnemies();
                 EnemyIdentifier closestEnemy = null;
-                float closestDist = 15f; // Reduced range from 20 to 15
+                float closestDist = 15f;
 
                 foreach (var enemy in enemies)
                 {
@@ -608,8 +581,8 @@ public class WordProjectile : MonoBehaviour
                     wp.chainCount = chainCount + 1;
                     wp.isHoming = true;
                     wp.target = closestEnemy;
-                    wp.projectileDamage *= 0.6f; // Reduced from 0.7f
-                    wp.maxLifetime = 2f; // Short lifetime for chains
+                    wp.projectileDamage *= 0.6f;
+                    wp.maxLifetime = 2f;
                 }
             }
 
@@ -637,19 +610,17 @@ public class WordProjectile : MonoBehaviour
         if (lower == "flesh" && eid.enemyClass != EnemyClass.Machine) totalMult += 0.5f;
         if (lower == "metal" && eid.enemyClass == EnemyClass.Machine) totalMult += 1f;
 
-        // Length bonus
+
         if (Word.Length > 6 && Word.Length < 9) totalMult += 0.3f;
         else if (Word.Length >= 9 && Word.Length < 13) totalMult += 0.6f;
         else if (Word.Length >= 13) totalMult += 1f;
 
-        // Proper reversed string
+
         string reversedText = new string(Word.Reverse().ToArray());
 
-        // Palindrome bonus
         if (reversedText.ToLower() == lower)
             totalMult += 1f;
 
-        // Aggressive words
         switch (lower)
         {
             case "weak":
@@ -720,7 +691,6 @@ public class WordProjectile : MonoBehaviour
         if (lower == "infinite")
             totalMult += 3f;
 
-        // NEW MULTIPLIERS
         if (lower == "death")
             totalMult += 2f;
 
