@@ -29,7 +29,7 @@ public class MetalPipeWeapon : MonoBehaviour
         {
             RaycastHit hit;
             if (Physics.Raycast(CameraController.Instance.transform.position,
-                CameraController.Instance.transform.forward, out hit, 2.5f, LayerMaskDefaults.Get(LMD.Enemies)))
+                CameraController.Instance.transform.forward, out hit, 6, LayerMaskDefaults.Get(LMD.Enemies)))
             {
                 if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
                 {
@@ -45,20 +45,26 @@ public class MetalPipeWeapon : MonoBehaviour
         if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame && pipe == null)
         {
             anim.SetBool("RightClick", true);
-            
-            pipe = Instantiate(metalPipeProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
-        
         }
     }
      
-    public void EnableDamage()
+    public void ThrowPipe()
     {
-        hitEnemies.Clear();
-        isDamaging = true;
+        pipe = Instantiate(metalPipeProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
     }
 
-    public void DisableDamage()
+    public void EnableDamage()
     {
-        hitEnemies.Clear();
+        RaycastHit hit;
+        if (Physics.Raycast(CameraController.Instance.transform.position,
+            CameraController.Instance.transform.forward, out hit, 2.5f, LayerMaskDefaults.Get(LMD.Enemies)))
+        {
+            if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
+            {
+                enemyHit.eid.hitter = "Metal";
+                enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false);
+                source.PlayOneShot(slapClip);
+            }
+        }
     }
 }

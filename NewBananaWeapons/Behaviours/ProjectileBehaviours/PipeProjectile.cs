@@ -13,6 +13,8 @@ public class PipeProjectile : MonoBehaviour
     [HideInInspector] public float damage = 4.5f;
     [HideInInspector] public int timesParried = 1;
 
+    [HideInInspector] public float timerWhereItHasToReturn = 5f;
+
     float rotationSpeed = 20;
 
     [HideInInspector] public bool goingBackToPlayer = false;
@@ -29,20 +31,35 @@ public class PipeProjectile : MonoBehaviour
 
     public void Calculate()
     {
-        speed = 80f - (20f / (float)timesParried);
-        damage = 10 - (5.5f / (float)timesParried);
+        speed = 80f - (80 - speed / (float)timesParried);
+        damage = 10 - (10 - damage / (float)timesParried);
     }
 
     private void Update()
     {
+        if (!goingBackToPlayer)
+            timerWhereItHasToReturn -= Time.deltaTime;
+        if(timerWhereItHasToReturn <= 0 && !goingBackToPlayer)
+        {
+            goingBackToPlayer = true;
+        }
         if (goingBackToPlayer)
         {
-            transform.LookAt(NewMovement.Instance.transform, Vector3.up);
+            transform.LookAt(CameraController.Instance.transform, Vector3.up);
         }
         visual.Rotate(Vector3.one * rotationSpeed * Time.deltaTime);
         transform.position += transform.forward * speed * Time.deltaTime;
 
-        if(Vector3.Distance(transform.position, NewMovement.Instance.transform.position) <= 0.1f)
+        if(Vector3.Distance(transform.position, CameraController.Instance.transform.position) <= 0.25f && goingBackToPlayer)
+        {
+            StartCoroutine(waitBeforeDestruction());
+        }
+    }
+
+    IEnumerator waitBeforeDestruction()
+    {
+        yield return new WaitForSeconds(0.35f);
+        if (goingBackToPlayer)
         {
             Destroy(gameObject);
         }
@@ -59,12 +76,17 @@ public class PipeProjectile : MonoBehaviour
             if(other.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
             {
                 eidd.eid.hitter = "Pipe";
-                eidd.eid.SimpleDamage(damage);
+                eidd.eid.SimpleDamage(damage * 2);
             }
 
             if(((LayerMaskDefaults.Get(LMD.Environment).value & (1 << layer)) != 0))
             {
-                Instantiate(wallHitExplosion, transform.position, Quaternion.identity);
+                GameObject explo = Instantiate(wallHitExplosion, transform.position, Quaternion.identity);
+                foreach (var ex in explo.GetComponentsInChildren<Explosion>())
+                {
+                    ex.playerDamageOverride = (int)damage / 2;
+                    ex.enemyDamageMultiplier = damage;
+                }
             }
         }
     }
@@ -79,9 +101,12 @@ public static class PunchPipe
         Banana_WeaponsPlugin.Log.LogInfo(target.gameObject.name + " is being checked");
         if(target.gameObject.TryGetComponent<PipeProjectile>(out PipeProjectile pipe))
         {
+            if (pipe.goingBackToPlayer == false) return;
             pipe.goingBackToPlayer = false;
             pipe.timesParried++;
+            pipe.transform.forward = CameraController.Instance.transform.forward;
             pipe.Calculate();
+            pipe.timerWhereItHasToReturn = 5;
 
             MonoSingleton<TimeController>.Instance.ParryFlash();
             __instance.anim.Play("Hook", 0, 0.065f);
