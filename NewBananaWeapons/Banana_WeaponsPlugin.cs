@@ -396,5 +396,49 @@ namespace NewBananaWeapons
                 }
             }
         }
+
+        // Style Things
+        [HarmonyPatch(typeof(StyleCalculator), nameof(StyleCalculator.HitCalculator))]
+        public class CustomStyle
+        {
+            public static void Prefix(StyleCalculator __instance, string hitter, string enemyType, string hitLimb, bool dead, EnemyIdentifier eid = null, GameObject sourceWeapon = null)
+            {
+                if (eid != null && eid.blessed)
+                {
+                    return;
+                }
+                if (MonoSingleton<PlayerTracker>.Instance.playerType == PlayerType.Platformer)
+                {
+                    return;
+                }
+
+                if(hitter == "Metal")
+                {
+                    __instance.AddPoints(10, "", eid, sourceWeapon);
+                    if (dead)
+                    {
+                        __instance.AddPoints(150, "BLUNT FORCE", eid, sourceWeapon);
+                    }
+                }
+
+                if(hitter == "pipe")
+                {
+                    __instance.AddPoints(24, "", eid, sourceWeapon);
+                    if (dead)
+                    {
+                        __instance.AddPoints(125, "PIPE BASH", eid, sourceWeapon);
+                    }
+                }
+                if(hitter == "repipe")
+                {
+                    __instance.AddPoints(36, "", eid, sourceWeapon);
+                    if (dead)
+                    {
+                        __instance.AddPoints(100, "RE-PIPE", eid, sourceWeapon);
+                    }
+                }
+            }
+        }
     }
 }
+

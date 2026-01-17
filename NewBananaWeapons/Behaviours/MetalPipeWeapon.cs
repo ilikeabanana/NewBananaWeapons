@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using NewBananaWeapons;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ public class MetalPipeWeapon : MonoBehaviour
     {
         anim = GetComponent<Animator>();
         source = GetComponent<AudioSource>();
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(metalPipeProjectile));
     }
 
     private void Update()
@@ -29,13 +31,13 @@ public class MetalPipeWeapon : MonoBehaviour
         {
             RaycastHit hit;
             if (Physics.Raycast(CameraController.Instance.transform.position,
-                CameraController.Instance.transform.forward, out hit, 6, LayerMaskDefaults.Get(LMD.Enemies)))
+                CameraController.Instance.transform.forward, out hit, 35f, LayerMaskDefaults.Get(LMD.Enemies)))
             {
                 if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
                 {
                     if (hitEnemies.Contains(enemyHit.eid)) return;
                     enemyHit.eid.hitter = "Metal";
-                    enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false);
+                    enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 3, false);
                     hitEnemies.Add(enemyHit.eid);
                     source.PlayOneShot(slapClip);
                 }

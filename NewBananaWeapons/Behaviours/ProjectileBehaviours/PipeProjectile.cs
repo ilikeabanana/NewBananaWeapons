@@ -10,7 +10,10 @@ public class PipeProjectile : MonoBehaviour
     public Transform visual;
 
     [HideInInspector] public float speed = 60;
-    [HideInInspector] public float damage = 4.5f;
+    float defaultSpeed = 60;
+    float maxSpeed = 80;
+    [HideInInspector] public float damage = 2.5f;
+    float defaultDamage = 4.5f;
     [HideInInspector] public int timesParried = 1;
 
     [HideInInspector] public float timerWhereItHasToReturn = 5f;
@@ -29,13 +32,17 @@ public class PipeProjectile : MonoBehaviour
         Calculate();
     }
 
+    public float maxDamage = 10f;
+    public float rampK = 0.35f;
+
     public void Calculate()
     {
-        speed = 80f - (80 - speed / (float)timesParried);
-        damage = 10 - (10 - damage / (float)timesParried);
+        damage = maxDamage - (maxDamage - defaultDamage) / (1f + timesParried * rampK);
+        speed = maxSpeed - (maxSpeed - defaultSpeed) / (1f + timesParried * rampK);
     }
 
-    private void Update()
+
+    private void Update() 
     {
         if (!goingBackToPlayer)
             timerWhereItHasToReturn -= Time.deltaTime;
@@ -50,7 +57,7 @@ public class PipeProjectile : MonoBehaviour
         visual.Rotate(Vector3.one * rotationSpeed * Time.deltaTime);
         transform.position += transform.forward * speed * Time.deltaTime;
 
-        if(Vector3.Distance(transform.position, CameraController.Instance.transform.position) <= 0.25f && goingBackToPlayer)
+        if(Vector3.Distance(transform.position, CameraController.Instance.transform.position) <= 0.5f && goingBackToPlayer)
         {
             StartCoroutine(waitBeforeDestruction());
         }
@@ -58,11 +65,8 @@ public class PipeProjectile : MonoBehaviour
 
     IEnumerator waitBeforeDestruction()
     {
-        yield return new WaitForSeconds(0.35f);
-        if (goingBackToPlayer)
-        {
-            Destroy(gameObject);
-        }
+        yield return new WaitForSeconds(0.15f);
+        Destroy(gameObject);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -75,8 +79,11 @@ public class PipeProjectile : MonoBehaviour
             goingBackToPlayer = true;
             if(other.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
             {
-                eidd.eid.hitter = "Pipe";
-                eidd.eid.SimpleDamage(damage * 2);
+                if (timesParried == 1)
+                    eidd.eid.hitter = "pipe";
+                else
+                    eidd.eid.hitter = "repipe";
+                eidd.eid.SimpleDamage(damage * 1.2f);
             }
 
             if(((LayerMaskDefaults.Get(LMD.Environment).value & (1 << layer)) != 0))
@@ -84,7 +91,7 @@ public class PipeProjectile : MonoBehaviour
                 GameObject explo = Instantiate(wallHitExplosion, transform.position, Quaternion.identity);
                 foreach (var ex in explo.GetComponentsInChildren<Explosion>())
                 {
-                    ex.playerDamageOverride = (int)damage / 2;
+                    ex.playerDamageOverride = Mathf.RoundToInt(damage / 1.5f);
                     ex.enemyDamageMultiplier = damage;
                 }
             }
@@ -107,7 +114,7 @@ public static class PunchPipe
             pipe.transform.forward = CameraController.Instance.transform.forward;
             pipe.Calculate();
             pipe.timerWhereItHasToReturn = 5;
-
+            pipe.StopAllCoroutines();
             MonoSingleton<TimeController>.Instance.ParryFlash();
             __instance.anim.Play("Hook", 0, 0.065f);
         }
