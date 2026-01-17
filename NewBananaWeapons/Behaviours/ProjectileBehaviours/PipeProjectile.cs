@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using NewBananaWeapons;
+using HarmonyLib;
 
 
 public class PipeProjectile : MonoBehaviour
@@ -8,11 +9,13 @@ public class PipeProjectile : MonoBehaviour
     public GameObject wallHitExplosion;
     public Transform visual;
 
-    float speed = 20;
+    [HideInInspector] public float speed = 60;
+    [HideInInspector] public float damage = 4.5f;
+    [HideInInspector] public int timesParried = 1;
 
     float rotationSpeed = 20;
 
-    bool goingBackToPlayer = false;
+    [HideInInspector] public bool goingBackToPlayer = false;
 
     void Awake()
     {
@@ -21,6 +24,13 @@ public class PipeProjectile : MonoBehaviour
         {
             StartCoroutine(ShaderManager.ApplyShaderToGameObject(expl.explosionChunk));
         }
+        Calculate();
+    }
+
+    public void Calculate()
+    {
+        speed = 80f - (20f / (float)timesParried);
+        damage = 10 - (5.5f / (float)timesParried);
     }
 
     private void Update()
@@ -46,10 +56,35 @@ public class PipeProjectile : MonoBehaviour
         if (((mask.value & (1 << layer)) != 0))
         {
             goingBackToPlayer = true;
+            if(other.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
+            {
+                eidd.eid.hitter = "Pipe";
+                eidd.eid.SimpleDamage(damage);
+            }
+
             if(((LayerMaskDefaults.Get(LMD.Environment).value & (1 << layer)) != 0))
             {
                 Instantiate(wallHitExplosion, transform.position, Quaternion.identity);
             }
+        }
+    }
+}
+
+[HarmonyPatch(typeof(Punch), nameof(Punch.TryParryProjectile))]
+public static class PunchPipe
+{
+    [HarmonyPrefix]
+    public static void Prefix(Punch __instance, Transform target, bool canProjectileBoost = false)
+    {
+        Banana_WeaponsPlugin.Log.LogInfo(target.gameObject.name + " is being checked");
+        if(target.gameObject.TryGetComponent<PipeProjectile>(out PipeProjectile pipe))
+        {
+            pipe.goingBackToPlayer = false;
+            pipe.timesParried++;
+            pipe.Calculate();
+
+            MonoSingleton<TimeController>.Instance.ParryFlash();
+            __instance.anim.Play("Hook", 0, 0.065f);
         }
     }
 }

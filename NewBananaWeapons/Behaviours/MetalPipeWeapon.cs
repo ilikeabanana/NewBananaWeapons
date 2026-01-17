@@ -7,6 +7,7 @@ public class MetalPipeWeapon : MonoBehaviour
 {
     public GameObject metalPipeProjectile;
     public AudioClip slapClip;
+    GameObject pipe;
     AudioSource source;
     Animator anim;
 
@@ -16,36 +17,36 @@ public class MetalPipeWeapon : MonoBehaviour
     private void Awake()
     {
         anim = GetComponent<Animator>();
+        source = GetComponent<AudioSource>();
     }
 
     private void Update()
     {
         anim.SetBool("HoldingLeftClick", InputManager.Instance.InputSource.Fire1.IsPressed);
         anim.SetBool("RightClick", false);
+        anim.SetBool("HoldingPipe", pipe == null);
         if (isDamaging)
         {
-            Collider[] hits = Physics.OverlapSphere(transform.position, 2.5f);
-            if (hits.Length > 0)
+            RaycastHit hit;
+            if (Physics.Raycast(CameraController.Instance.transform.position,
+                CameraController.Instance.transform.forward, out hit, 2.5f, LayerMaskDefaults.Get(LMD.Enemies)))
             {
-                foreach (var hit in hits)
+                if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
                 {
-                    if (hit.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
-                    {
-                        if (hitEnemies.Contains(enemyHit.eid)) continue;
-                        enemyHit.eid.hitter = "oar";
-                        enemyHit.eid.DeliverDamage(hit.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false);
-                        hitEnemies.Add(enemyHit.eid);
-                        source.PlayOneShot(slapClip);
-                    }
+                    if (hitEnemies.Contains(enemyHit.eid)) return;
+                    enemyHit.eid.hitter = "Metal";
+                    enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false);
+                    hitEnemies.Add(enemyHit.eid);
+                    source.PlayOneShot(slapClip);
                 }
             }
         }
 
-        if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
+        if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame && pipe == null)
         {
             anim.SetBool("RightClick", true);
-            anim.SetBool("HoldingPipe", false);
-            Instantiate(metalPipeProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
+            
+            pipe = Instantiate(metalPipeProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
         
         }
     }
