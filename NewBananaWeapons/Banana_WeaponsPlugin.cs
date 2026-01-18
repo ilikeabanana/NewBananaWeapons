@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using BepInEx.Configuration;
 
 
 namespace NewBananaWeapons
@@ -32,6 +33,9 @@ namespace NewBananaWeapons
         public static Banana_WeaponsPlugin Instance { get; private set; }
 
         public static Dictionary<GameObject, float> cooldowns = new Dictionary<GameObject, float>();
+
+
+        public Dictionary<GameObject, ConfigEntry<bool>> WeaponsEnabled = new Dictionary<GameObject, ConfigEntry<bool>>();
         private void Awake()
         {
             Instance = this;
@@ -131,7 +135,10 @@ namespace NewBananaWeapons
                             bundle.Unload(false);
                             return;
                         }
-
+                        foreach (var asset in loadedAssets)
+                        {
+                            WeaponsEnabled.Add(asset, Config.Bind<bool>(asset.name, "Enabled", true));
+                        }
                         BundleWeapons.AddRange(loadedAssets);
                         bundle.Unload(false);
                     }
@@ -313,7 +320,7 @@ namespace NewBananaWeapons
             if (BundleWeapons == null || BundleWeapons.Count == 0) return;
             foreach (GameObject obj in BundleWeapons)
             {
-                if (obj != null && !addedWeapons.Contains(obj))
+                if (obj != null && !addedWeapons.Contains(obj) && WeaponsEnabled[obj].Value)
                 {
                     addedWeapons.Add(obj);
                     StartCoroutine(ShaderManager.ApplyShaderToGameObject(MakeGun(5, obj)));
