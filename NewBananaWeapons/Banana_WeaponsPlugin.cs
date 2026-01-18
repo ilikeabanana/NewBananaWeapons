@@ -456,6 +456,10 @@ namespace NewBananaWeapons
                         __instance.AddPoints(45, "CAR HIT", eid, sourceWeapon);
                     }
                 }
+                if(hitter == "table")
+                {
+                    __instance.AddPoints(76, "TABLED", eid, sourceWeapon);
+                }
             }
         }
 
@@ -484,7 +488,7 @@ namespace NewBananaWeapons
                     if (table.parried) return;
                     table.parried = true;
                     table.damage *= 2;
-                    table.GetComponent<Rigidbody>().velocity = CameraController.Instance.transform.forward * 20;
+                    table.GetComponent<Rigidbody>().velocity = CameraController.Instance.transform.forward * 100;
                     MonoSingleton<TimeController>.Instance.ParryFlash();
                     __instance.anim.Play("Hook", 0, 0.065f);
                 }
