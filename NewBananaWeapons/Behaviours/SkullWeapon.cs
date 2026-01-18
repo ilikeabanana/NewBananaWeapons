@@ -31,6 +31,7 @@ public class SkullWeapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
         anim.SetBool("Holding", MonoSingleton<InputManager>.Instance.InputSource.Fire1.IsPressed);
 
         if (MonoSingleton<InputManager>.Instance.InputSource.Fire2.WasPerformedThisFrame)

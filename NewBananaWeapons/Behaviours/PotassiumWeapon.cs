@@ -13,6 +13,7 @@ public class PotassiumWeapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
         Transform camTransform = CameraController.Instance.transform;
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && currentCar == null)
         {

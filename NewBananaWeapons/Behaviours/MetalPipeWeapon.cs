@@ -24,6 +24,7 @@ public class MetalPipeWeapon : MonoBehaviour
 
     private void Update()
     {
+        if (!GunControl.Instance.activated) return;
         anim.SetBool("HoldingLeftClick", InputManager.Instance.InputSource.Fire1.IsPressed);
         anim.SetBool("RightClick", false);
         anim.SetBool("HoldingPipe", pipe == null);
@@ -53,6 +54,7 @@ public class MetalPipeWeapon : MonoBehaviour
     public void ThrowPipe()
     {
         pipe = Instantiate(metalPipeProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
+        pipe.GetComponent<PipeProjectile>().sourceWeapon = gameObject;
     }
 
     public void EnableDamage()
@@ -64,7 +66,7 @@ public class MetalPipeWeapon : MonoBehaviour
             if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
             {
                 enemyHit.eid.hitter = "Metal";
-                enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false);
+                enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false, sourceWeapon: gameObject);
                 source.PlayOneShot(slapClip);
             }
         }

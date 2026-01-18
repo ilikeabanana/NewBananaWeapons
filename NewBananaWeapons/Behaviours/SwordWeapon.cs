@@ -17,6 +17,7 @@ public class SwordWeapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
         if (NoWeaponCooldown.NoCooldown)
         {
             cd = 0;

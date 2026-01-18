@@ -21,6 +21,7 @@ public class PipeProjectile : MonoBehaviour
     float rotationSpeed = 20;
 
     [HideInInspector] public bool goingBackToPlayer = false;
+    [HideInInspector] public GameObject sourceWeapon = null;
 
     void Awake()
     {
@@ -83,7 +84,10 @@ public class PipeProjectile : MonoBehaviour
                     eidd.eid.hitter = "pipe";
                 else
                     eidd.eid.hitter = "repipe";
-                eidd.eid.SimpleDamage(damage * 1.2f);
+                eidd.eid.DeliverDamage(other.gameObject, 
+                    CameraController.Instance.transform.forward * 20,
+                    other.gameObject.transform.position,
+                    damage * 1.2f, false, sourceWeapon: sourceWeapon);
             }
 
             if(((LayerMaskDefaults.Get(LMD.Environment).value & (1 << layer)) != 0))

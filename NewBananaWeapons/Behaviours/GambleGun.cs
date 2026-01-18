@@ -68,6 +68,7 @@ public class GambleGun : MonoBehaviour
     }
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && !spinning)
         {
             spinning = true;

@@ -13,6 +13,9 @@ public class DavidWeapon : MonoBehaviour
     public GameObject car;
 
     float idleTimer = 0;
+
+    float cooldownTimer = 0;
+
     AudioSource source;
 
     GameObject thrownDavid;
@@ -25,23 +28,29 @@ public class DavidWeapon : MonoBehaviour
 
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
+
         Transform CamTrans = CameraController.Instance.transform;
-        idleTimer -= Time.deltaTime;
+        if(thrownDavid == null)
+            idleTimer -= Time.deltaTime;
+
+        cooldownTimer -= Time.deltaTime;
         if(idleTimer < 0)
         {
             source.PlayOneShot(idleClips[Random.Range(0, idleClips.Count)]);
             idleTimer = Random.Range(3, 10);
         }
 
-        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && thrownDavid == null)
+        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && thrownDavid == null && cooldownTimer <= 0)
         {
             if(Physics.Raycast(CamTrans.position, CamTrans.forward, out RaycastHit hit, 1000, LayerMaskDefaults.Get(LMD.Environment)))
             {
                 thrownDavid = Instantiate(davidThrown, hit.point + new Vector3(0, davidThrown.transform.localScale.y / 2), davidThrown.transform.rotation);
+                cooldownTimer = 2;
             }
         }
 
-        if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame && thrownDavid != null)
+        if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame && thrownDavid != null && cooldownTimer <= 0)
         {
             source.PlayOneShot(ThereIsACar);
 
@@ -50,6 +59,8 @@ public class DavidWeapon : MonoBehaviour
 
             GameObject cra = Instantiate(car, spawnPos, Quaternion.identity);
             cra.GetComponent<CarProjectile>().target = thrownDavid.transform;
+            cra.GetComponent<CarProjectile>().sourceWeapon = gameObject;
+            cooldownTimer = 9;
         }
 
 

@@ -42,6 +42,7 @@ public class OarWeapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
         anim.SetBool("Holding", MonoSingleton<InputManager>.Instance.InputSource.Fire1.IsPressed);
         if(cooldown <= 0)
             anim.SetBool("Rightclick", MonoSingleton<InputManager>.Instance.InputSource.Fire2.IsPressed);

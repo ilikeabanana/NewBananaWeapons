@@ -23,6 +23,7 @@ public class TheForceWeapon : MonoBehaviour
 
     void Update()
     {
+        if (!GunControl.Instance.activated) return;
         if (currentTarget != null && currentTarget.dead)
             currentTarget = null;
 

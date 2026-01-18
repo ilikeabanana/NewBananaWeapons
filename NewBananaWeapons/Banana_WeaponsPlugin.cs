@@ -444,6 +444,18 @@ namespace NewBananaWeapons
                         __instance.AddPoints(100, "RE-PIPE", eid, sourceWeapon);
                     }
                 }
+
+                if(hitter == "car")
+                {
+                    if (dead)
+                    {
+                        __instance.AddPoints(130, "RUN-OVER", eid, sourceWeapon);
+                    }
+                    else
+                    {
+                        __instance.AddPoints(45, "CAR HIT", eid, sourceWeapon);
+                    }
+                }
             }
         }
     }

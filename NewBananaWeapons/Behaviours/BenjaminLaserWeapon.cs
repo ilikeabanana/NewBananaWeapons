@@ -15,7 +15,8 @@ public class BenjaminLaserWeapon : MonoBehaviour
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(laser));
     }
     void Update()
-    { 
+    {
+        if (!GunControl.Instance.activated) return;
         if (Banana_WeaponsPlugin.cooldowns.ContainsKey(gameObject))
         {
             chargingLaser.SetActive(false);

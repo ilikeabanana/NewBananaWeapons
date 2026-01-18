@@ -1,13 +1,20 @@
-﻿using UnityEngine;
+﻿using NewBananaWeapons;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class CarProjectile : MonoBehaviour
 {
     [HideInInspector] public Transform target;
-    public float timeBeforeHittingDavid = 3.5f;
+    [HideInInspector] public float timeBeforeHittingDavid = 3.5f;
+    [HideInInspector] public GameObject sourceWeapon = null;
+
+    List<EnemyIdentifier> alreadyHitEnemies = new List<EnemyIdentifier>();
 
     private Vector3 direction;
     private float speed;
     private float timer;
+
+    float timeBeforeDeletion = 10;
 
     void Start()
     {
@@ -47,15 +54,24 @@ public class CarProjectile : MonoBehaviour
             {
                 if (col.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
                 {
+                    if (alreadyHitEnemies.Contains(enemyHit.eid)) continue;
                     enemyHit.eid.hitter = "car";
-                    enemyHit.eid.DeliverDamage(col.gameObject, CameraController.Instance.transform.forward * 20000 * 20, enemyHit.transform.position, 25, false);
+                    enemyHit.eid.DeliverDamage(col.gameObject, transform.forward * 20000 * 20, enemyHit.transform.position, 25, false, sourceWeapon: sourceWeapon);
+                    alreadyHitEnemies.Add(enemyHit.eid);
                 }
 
             }
         }
-        if (timer >= timeBeforeHittingDavid)
+        if (timer >= timeBeforeHittingDavid && target != null)
         {
+            Instantiate(AddressableManager.explosion, target.position, Quaternion.identity);
             Destroy(target.gameObject);
+            
         }
+        if(timer >= timeBeforeDeletion) 
+        {
+            Destroy(gameObject);
+        }
+
     }
 }
