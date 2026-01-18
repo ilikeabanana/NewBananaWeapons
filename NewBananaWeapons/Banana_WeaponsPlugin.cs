@@ -458,6 +458,38 @@ namespace NewBananaWeapons
                 }
             }
         }
+
+        [HarmonyPatch(typeof(Punch), nameof(Punch.TryParryProjectile))]
+        public static class PunchPipe
+        {
+            [HarmonyPrefix]
+            public static void Prefix(Punch __instance, Transform target, bool canProjectileBoost = false)
+            {
+                Banana_WeaponsPlugin.Log.LogInfo(target.gameObject.name + " is being checked");
+                if (target.gameObject.TryGetComponent<PipeProjectile>(out PipeProjectile pipe))
+                {
+                    if (pipe.goingBackToPlayer == false) return;
+                    pipe.goingBackToPlayer = false;
+                    pipe.timesParried++;
+                    pipe.transform.forward = CameraController.Instance.transform.forward;
+                    pipe.Calculate();
+                    pipe.timerWhereItHasToReturn = 5;
+                    pipe.StopAllCoroutines();
+                    MonoSingleton<TimeController>.Instance.ParryFlash();
+                    __instance.anim.Play("Hook", 0, 0.065f);
+                }
+
+                if (target.gameObject.TryGetComponent<TableProjectile>(out TableProjectile table))
+                {
+                    if (table.parried) return;
+                    table.parried = true;
+                    table.damage *= 2;
+                    table.GetComponent<Rigidbody>().velocity = CameraController.Instance.transform.forward * 20;
+                    MonoSingleton<TimeController>.Instance.ParryFlash();
+                    __instance.anim.Play("Hook", 0, 0.065f);
+                }
+            }
+        }
     }
 }
 

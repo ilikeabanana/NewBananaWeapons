@@ -103,24 +103,3 @@ public class PipeProjectile : MonoBehaviour
     }
 }
 
-[HarmonyPatch(typeof(Punch), nameof(Punch.TryParryProjectile))]
-public static class PunchPipe
-{
-    [HarmonyPrefix]
-    public static void Prefix(Punch __instance, Transform target, bool canProjectileBoost = false)
-    {
-        Banana_WeaponsPlugin.Log.LogInfo(target.gameObject.name + " is being checked");
-        if(target.gameObject.TryGetComponent<PipeProjectile>(out PipeProjectile pipe))
-        {
-            if (pipe.goingBackToPlayer == false) return;
-            pipe.goingBackToPlayer = false;
-            pipe.timesParried++;
-            pipe.transform.forward = CameraController.Instance.transform.forward;
-            pipe.Calculate();
-            pipe.timerWhereItHasToReturn = 5;
-            pipe.StopAllCoroutines();
-            MonoSingleton<TimeController>.Instance.ParryFlash();
-            __instance.anim.Play("Hook", 0, 0.065f);
-        }
-    }
-}
