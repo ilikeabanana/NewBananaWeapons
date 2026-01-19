@@ -286,7 +286,7 @@ namespace NewBananaWeapons
 
             if (funnySecret != null)
             {
-                if (Input.GetKeyDown(KeyCode.End))
+                if (Input.GetKeyDown(KeyCode.Dollar))
                 {
 
                     GameObject funny = Instantiate(funnySecret, NewMovement.instance.transform.position, Quaternion.identity);
@@ -308,13 +308,23 @@ namespace NewBananaWeapons
                 MakeGun(5, mockGun);
             }
 
+            if (Input.GetKeyDown(KeyCode.End))
+            {
+                GameObject mockArm = new GameObject("mockArm");
+                mockArm.SetActive(false);
+
+                mockArm.AddComponent<LoaderArm>();
+
+                AddArm(mockArm);
+            }
+
 
             if (BundleArms == null || BundleArms.Count == 0) return;
             foreach (GameObject obj in BundleArms)
             {
                 if (obj != null && !addedArms.Contains(obj))
                 {
-                    AddArm(obj, 3);
+                    AddArm(obj);
                 }
             }
             if (BundleWeapons == null || BundleWeapons.Count == 0) return;
@@ -329,7 +339,7 @@ namespace NewBananaWeapons
             }
         }
 
-        public void AddArm(GameObject arm, int slot)
+        public void AddArm(GameObject arm)
         {
             if (arm == null) return;
 
