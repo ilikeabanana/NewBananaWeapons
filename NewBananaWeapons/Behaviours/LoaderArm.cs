@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class LoaderArm : MonoBehaviour
 {
-    float chargeTime;
+    float charge;          // how strong the punch is
+    float launchTimer;     // how long the launch lasts
+
     bool launching;
     float velocity = 0;
     List<EnemyIdentifier> alreadyHitEnemies = new List<EnemyIdentifier>();
@@ -15,17 +17,18 @@ public class LoaderArm : MonoBehaviour
     void Update()
     {
         if (InputManager.Instance.InputSource.Punch.IsPressed && !launching)
-        {
-            chargeTime += Time.deltaTime * 2;
-        }
+            charge += Time.deltaTime;
+
 
         if (InputManager.Instance.InputSource.Punch.WasCanceledThisFrame && !launching)
         {
             //NewMovement.Instance.Launch(CameraController.Instance.transform.forward, 32 * chargeTime, true);
-            velocity = 32 * chargeTime;
             direction = CameraController.Instance.transform.forward;
-            chargeTime = 0;
+            charge = Mathf.Clamp(charge, 0f, 5f); // optional cap
+            velocity = 48f * charge;
+            launchTimer = charge / 2;  // duration scales with charge
             launching = true;
+            charge = 0;
             alreadyHitEnemies.Clear();
             
         }
@@ -34,23 +37,41 @@ public class LoaderArm : MonoBehaviour
         {
             NewMovement.Instance.rb.velocity = direction * velocity;
 
-            chargeTime -= Time.deltaTime;
-            Collider[] hitCols = Physics.OverlapSphere(transform.position, 10);
-            if (hitCols.Length > 0)
+            launchTimer -= Time.deltaTime;
+            if (launchTimer <= 0f)
             {
-                foreach (var col in hitCols)
-                {
-                    if (col.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
-                    {
-                        if (alreadyHitEnemies.Contains(enemyHit.eid)) continue;
-                        enemyHit.eid.hitter = "riskofrain2loaderreference";
-                        enemyHit.eid.DeliverDamage(col.gameObject, direction * 1000 * chargeTime, enemyHit.transform.position, 15 * chargeTime, false, sourceWeapon: null);
-                        alreadyHitEnemies.Add(enemyHit.eid);
-                    }
+                launching = false;
+            }
 
+            RaycastHit[] hits = Physics.SphereCastAll(
+                CameraController.Instance.transform.position,
+                5f,
+                direction,
+                1
+            );
+
+            foreach (var hit in hits)
+            {
+                if (hit.collider.TryGetComponent<EnemyIdentifierIdentifier>(out var enemyHit))
+                {
+                    if (alreadyHitEnemies.Contains(enemyHit.eid))
+                        continue;
+
+                    enemyHit.eid.hitter = "riskofrain2loaderreference";
+                    enemyHit.eid.DeliverDamage(
+                        hit.collider.gameObject,
+                        direction * 1000f * charge,
+                        hit.point,
+                        15 * (charge + 1),
+                        false,
+                        sourceWeapon: null
+                    );
+
+                    alreadyHitEnemies.Add(enemyHit.eid);
                 }
             }
-            if (chargeTime <= 0) 
+
+            if (launchTimer <= 0) 
             {
                 launching = false;
             }
