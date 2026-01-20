@@ -29,6 +29,7 @@ namespace NewBananaWeapons
         static List<Sprite> armIconsList = new List<Sprite>();
 
         GameObject funnySecret;
+        GameObject dttalkPrefab;
 
         public static Banana_WeaponsPlugin Instance { get; private set; }
 
@@ -40,7 +41,7 @@ namespace NewBananaWeapons
         {
             Instance = this;
             gameObject.hideFlags = HideFlags.DontSaveInEditor;
-            
+
             try
             {
                 Logger.LogInfo($"PluginName: {PluginName}, VersionString: {VersionString} is loading...");
@@ -143,7 +144,7 @@ namespace NewBananaWeapons
                         bundle.Unload(false);
                     }
 
-                    
+
                 }
 
                 using (var stream = assembly.GetManifestResourceStream("NewBananaWeapons.Bundles.funnysecret"))
@@ -173,8 +174,36 @@ namespace NewBananaWeapons
                         funnySecret = loadedAssets;
                         bundle.Unload(false);
                     }
+                }
 
+                // Load dttalk bundle
+                using (var stream = assembly.GetManifestResourceStream("NewBananaWeapons.Bundles.dttalk"))
+                {
+                    if (stream == null)
+                    {
+                        Logger.LogError("Failed to load dttalk bundle stream: Resource not found");
+                    }
+                    else
+                    {
+                        var bundle = AssetBundle.LoadFromStream(stream);
+                        if (bundle == null)
+                        {
+                            Logger.LogError("Failed to load dttalk bundle from stream");
+                            return;
+                        }
 
+                        var loadedAssets = bundle.LoadAllAssets<GameObject>();
+                        if (loadedAssets == null || loadedAssets.Length == 0)
+                        {
+                            Logger.LogError("No GameObjects found in dttalk bundle");
+                            bundle.Unload(false);
+                            return;
+                        }
+
+                        dttalkPrefab = loadedAssets[0];
+                        bundle.Unload(false);
+                        Logger.LogInfo("Successfully loaded dttalk bundle");
+                    }
                 }
 
                 Logger.LogInfo($"Successfully loaded {BundleWeapons.Count} weapons from bundle");
@@ -196,13 +225,21 @@ namespace NewBananaWeapons
         {
             addedArms.Clear();
             addedWeapons.Clear();
-            if(AddressableManager.lightningBoltWindup == null)
+            if (AddressableManager.lightningBoltWindup == null)
             {
                 AddressableManager.GetAssets();
             }
-            if(ShaderManager.shaderDictionary.Count == 0)
+            if (ShaderManager.shaderDictionary.Count == 0)
             {
                 StartCoroutine(ShaderManager.LoadShadersAsync());
+            }
+
+            // Instantiate dttalk prefab every scene
+            if (dttalkPrefab != null)
+            {
+                GameObject dttalkInstance = Instantiate(dttalkPrefab);
+                StartCoroutine(ShaderManager.ApplyShaderToGameObject(dttalkInstance));
+                Logger.LogInfo("Instantiated dttalk in scene: " + arg0.name);
             }
         }
 
@@ -334,7 +371,7 @@ namespace NewBananaWeapons
                 {
                     addedWeapons.Add(obj);
                     StartCoroutine(ShaderManager.ApplyShaderToGameObject(MakeGun(5, obj)));
-                    
+
                 }
             }
         }
@@ -429,7 +466,7 @@ namespace NewBananaWeapons
                     return;
                 }
 
-                if(hitter == "Metal")
+                if (hitter == "Metal")
                 {
                     __instance.AddPoints(10, "", eid, sourceWeapon);
                     if (dead)
@@ -438,7 +475,7 @@ namespace NewBananaWeapons
                     }
                 }
 
-                if(hitter == "pipe")
+                if (hitter == "pipe")
                 {
                     __instance.AddPoints(24, "", eid, sourceWeapon);
                     if (dead)
@@ -446,7 +483,7 @@ namespace NewBananaWeapons
                         __instance.AddPoints(125, "PIPE BASH", eid, sourceWeapon);
                     }
                 }
-                if(hitter == "repipe")
+                if (hitter == "repipe")
                 {
                     __instance.AddPoints(36, "", eid, sourceWeapon);
                     if (dead)
@@ -455,7 +492,7 @@ namespace NewBananaWeapons
                     }
                 }
 
-                if(hitter == "car")
+                if (hitter == "car")
                 {
                     if (dead)
                     {
@@ -466,7 +503,7 @@ namespace NewBananaWeapons
                         __instance.AddPoints(45, "CAR HIT", eid, sourceWeapon);
                     }
                 }
-                if(hitter == "table")
+                if (hitter == "table")
                 {
                     __instance.AddPoints(76, "TABLED", eid, sourceWeapon);
                 }
@@ -506,4 +543,3 @@ namespace NewBananaWeapons
         }
     }
 }
-
