@@ -14,6 +14,7 @@ namespace NewBananaWeapons
         public static GameObject normalBeam;
         public static GameObject manipulationEffect;
         public static GameObject explosion;
+        public static GameObject blueFlash;
         public static void GetAssets()
         {
             loadAddressable("Assets/Particles/Environment/LightningBoltWindupFollow Variant.prefab",
@@ -45,6 +46,11 @@ namespace NewBananaWeapons
                 (result) =>
                 {
                     explosion = result;
+                });
+            loadAddressable("Assets/Particles/Flashes/V2FlashUnparriable.prefab",
+                (result) =>
+                {
+                    blueFlash = result;
                 });
         }
 

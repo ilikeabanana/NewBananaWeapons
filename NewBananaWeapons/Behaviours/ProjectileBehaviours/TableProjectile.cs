@@ -17,11 +17,11 @@ public class TableProjectile : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        rb.velocity = transform.forward * 19 * PlayerTracker.Instance.GetPlayerVelocity().magnitude;
+        rb.velocity = transform.forward * 19;
         transform.Rotate(-90, 0, 0);
-        float randX = Random.Range(-100, 100);
-        float randY = Random.Range(-100, 100);
-        float randZ = Random.Range(-100, 100);
+        float randX = Random.Range(-360, 360);
+        float randY = Random.Range(-360, 360);
+        float randZ = Random.Range(-360, 360);
         rb.angularVelocity = new Vector3(randX, randY, randZ);
     }
 
