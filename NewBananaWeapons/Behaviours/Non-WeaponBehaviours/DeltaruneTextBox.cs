@@ -30,13 +30,16 @@ public class DeltaruneTextBox : MonoBehaviour
     {
         if (target == null) return;
         float dist = Vector3.Distance(NewMovement.Instance.transform.position, target.transform.position);
-        if (dist <= 10)
+        if (dist <= 45)
         {
-            group.alpha = dist / 10f;
+            float calculation = 1f - (dist / 45f);
+            group.alpha = calculation;
+            source.volume = calculation;
         }
         else
         {
             group.alpha = 0;
+            source.volume = 0;
         }
     }
 
@@ -53,7 +56,7 @@ public class DeltaruneTextBox : MonoBehaviour
     {
         for (int i = 0; i < text.Length; i++)
         {
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(0.033f);
             tmpText.text += text[i];
             source.PlayOneShot(clipToUseOnCharacterType);
         }

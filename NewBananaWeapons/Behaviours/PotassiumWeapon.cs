@@ -30,7 +30,7 @@ public class PotassiumWeapon : MonoBehaviour
                 out RaycastHit hit,
                 100, LayerMaskDefaults.Get(LMD.Environment)))
             {
-                AddWaypoint(hit.point);
+                CreateWaypoint(hit.point);
             }
         }
 
@@ -41,9 +41,13 @@ public class PotassiumWeapon : MonoBehaviour
 
             GameObject car = Instantiate(carPrefab);
             car.transform.position = wayPoints[0].position;
+            car.transform.position -= new Vector3(0, 0, 35);
+
+            DeltaruneTextBox.Instance.TextboxText("Kris, get the bananas", car.transform);
 
             // Give car the path
             CarPathFollower follower = car.GetComponent<CarPathFollower>();
+            follower.transform.localScale *= 2;
             follower.SetPath(wayPoints);
 
             // Clear local list so new path can be drawn
@@ -52,7 +56,7 @@ public class PotassiumWeapon : MonoBehaviour
 
         UpdateLine();
     }
-
+    /*
     void AddWaypoint(Vector3 newPos)
     {
         if (wayPoints.Count == 0)
@@ -91,7 +95,7 @@ public class PotassiumWeapon : MonoBehaviour
         }
 
         CreateWaypoint(newPos);
-    }
+    }*/
 
     void CreateWaypoint(Vector3 pos)
     {
