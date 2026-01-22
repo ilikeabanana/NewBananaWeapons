@@ -30,15 +30,49 @@ public class LoaderArm : MonoBehaviour
     private List<EnemyIdentifier> alreadyHitEnemies = new List<EnemyIdentifier>();
     private Vector3 punchDirection;
 
+    Animator anim;
+
+    bool isHoldingPunch = false;
+    public void ChargeGauntlet()
+    {
+        isCharging = true;
+        isHoldingPunch =true;
+        chargeTime = 0f;
+    }
+
+    public void Release()
+    {
+        isHoldingPunch = false;
+        isPunching = true;
+        punchTimer = punchDuration;
+        punchDirection = CameraController.Instance.transform.forward;
+        alreadyHitEnemies.Clear();
+
+        float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
+
+        float launchVelocity = chargedPunchVelocity * chargePercent;
+        NewMovement.Instance.Launch(punchDirection, launchVelocity, true);
+        isCharging = false;
+        isHoldingCharge = false;
+    }
+
+    private void Awake()
+    {
+        anim = GetComponent<Animator>();
+    }
+
     void Update()
     {
+        /*
         if (InputManager.Instance.InputSource.Punch.WasPerformedThisFrame && !isCharging && !isHoldingCharge && !isPunching)
         {
             isCharging = true;
             chargeTime = 0f;
-        }
+        }*/
 
-        if (InputManager.Instance.InputSource.Punch.IsPressed && isCharging)
+        anim.SetBool("HoldingPunch", InputManager.Instance.InputSource.Punch.IsPressed);
+
+        if (isCharging && isHoldingPunch)
         {
             chargeTime += Time.deltaTime;
 
@@ -50,7 +84,7 @@ public class LoaderArm : MonoBehaviour
                 isHoldingCharge = true;
             }
         }
-
+        /*
         if (InputManager.Instance.InputSource.Punch.WasCanceledThisFrame && (isCharging || isHoldingCharge))
         {
             isPunching = true;
@@ -64,7 +98,7 @@ public class LoaderArm : MonoBehaviour
             NewMovement.Instance.Launch(punchDirection, launchVelocity, true);
             isCharging = false;
             isHoldingCharge = false;
-        }
+        }*/
         if (!isPunching) return;
 
         punchTimer -= Time.deltaTime;
