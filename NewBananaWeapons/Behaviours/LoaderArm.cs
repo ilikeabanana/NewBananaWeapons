@@ -33,9 +33,9 @@ public class LoaderArm : MonoBehaviour
     private List<EnemyIdentifier> alreadyHitEnemies = new List<EnemyIdentifier>();
     private Vector3 punchDirection;
 
-    // Store original collision states
-    private Dictionary<(int, int), bool> originalCollisionStates = new Dictionary<(int, int), bool>();
-    private Dictionary<(int, int), bool> originalPlayerCollisionStates = new Dictionary<(int, int), bool>();
+    // Store original collision states for ALL layer pairs
+    private Dictionary<(int, int), bool> originalAllCollisionStates = new Dictionary<(int, int), bool>();
+    private bool hasStoredCollisions = false;
 
     Animator anim;
 
@@ -63,53 +63,24 @@ public class LoaderArm : MonoBehaviour
         isCharging = false;
         isHoldingCharge = false;
 
-        int groundCheck = LayerMask.NameToLayer("GroundCheck");
-        int ignoreRaycasts = LayerMask.NameToLayer("Ignore Raycast");
-        int defaultLayer = LayerMask.NameToLayer("Default");
-        int limb = LayerMask.NameToLayer("Limb");
-        int bigcorpse = LayerMask.NameToLayer("BigCorpse");
-        int etrigger = LayerMask.NameToLayer("EnemyTrigger");
-        int gib = LayerMask.NameToLayer("Gib");
+        // Save ALL layer collision states comprehensively
+        SaveAllCollisionStates();
+        hasStoredCollisions = true;
+    }
 
-        // Save original collision states before modifying
-        originalCollisionStates.Clear();
-        SaveCollisionState(ignoreRaycasts, limb);
-        SaveCollisionState(defaultLayer, limb);
-        SaveCollisionState(groundCheck, limb);
-        SaveCollisionState(ignoreRaycasts, bigcorpse);
-        SaveCollisionState(defaultLayer, bigcorpse);
-        SaveCollisionState(groundCheck, bigcorpse);
-        SaveCollisionState(ignoreRaycasts, etrigger);
-        SaveCollisionState(defaultLayer, etrigger);
-        SaveCollisionState(groundCheck, etrigger);
-        SaveCollisionState(ignoreRaycasts, gib);
-        SaveCollisionState(defaultLayer, gib);
-        SaveCollisionState(groundCheck, gib);
+    private void SaveAllCollisionStates()
+    {
+        originalAllCollisionStates.Clear();
 
-        // Save original player collision states
-        int playerLayer = MonoSingleton<NewMovement>.Instance.gameObject.layer;
-        int environmentLayer = LayerMask.NameToLayer("Environment");
-        int outdoorsLayer = LayerMask.NameToLayer("Outdoors");
-
-        originalPlayerCollisionStates.Clear();
+        // Save all possible layer collision combinations
         for (int i = 0; i < 32; i++)
         {
-            if (i == environmentLayer || i == outdoorsLayer)
-                continue;
-            SaveCollisionState(playerLayer, i, originalPlayerCollisionStates);
+            for (int j = i; j < 32; j++)
+            {
+                bool isIgnored = Physics.GetIgnoreLayerCollision(i, j);
+                originalAllCollisionStates[(i, j)] = isIgnored;
+            }
         }
-    }
-
-    private void SaveCollisionState(int layer1, int layer2)
-    {
-        bool currentState = !Physics.GetIgnoreLayerCollision(layer1, layer2);
-        originalCollisionStates[(layer1, layer2)] = currentState;
-    }
-
-    private void SaveCollisionState(int layer1, int layer2, Dictionary<(int, int), bool> dict)
-    {
-        bool currentState = !Physics.GetIgnoreLayerCollision(layer1, layer2);
-        dict[(layer1, layer2)] = currentState;
     }
 
     private void DisablePlayerCollisionExceptEnvironment()
@@ -127,7 +98,8 @@ public class LoaderArm : MonoBehaviour
         // Also disable vertical clipping blocker like before
         VerticalClippingBlocker vcb =
             MonoSingleton<NewMovement>.Instance.GetComponent<VerticalClippingBlocker>();
-        vcb.enabled = false;
+        if (vcb != null)
+            vcb.enabled = false;
     }
 
     private void DisableEnemyLayerCollisions()
@@ -154,26 +126,22 @@ public class LoaderArm : MonoBehaviour
         Physics.IgnoreLayerCollision(groundCheck, gib, true);
     }
 
-    private void RestoreCollisionStates()
+    private void RestoreAllCollisionStates()
     {
-        foreach (var kvp in originalCollisionStates)
+        if (!hasStoredCollisions)
+            return;
+
+        // Restore all layer collision states
+        foreach (var kvp in originalAllCollisionStates)
         {
             int layer1 = kvp.Key.Item1;
             int layer2 = kvp.Key.Item2;
-            bool shouldCollide = kvp.Value;
+            bool wasIgnored = kvp.Value;
 
-            // Set to ignore if it should NOT collide (inverse logic)
-            Physics.IgnoreLayerCollision(layer1, layer2, !shouldCollide);
+            Physics.IgnoreLayerCollision(layer1, layer2, wasIgnored);
         }
 
-        foreach (var kvp in originalPlayerCollisionStates)
-        {
-            int layer1 = kvp.Key.Item1;
-            int layer2 = kvp.Key.Item2;
-            bool shouldCollide = kvp.Value;
-
-            Physics.IgnoreLayerCollision(layer1, layer2, !shouldCollide);
-        }
+        hasStoredCollisions = false;
     }
 
     private void Awake()
@@ -198,70 +166,98 @@ public class LoaderArm : MonoBehaviour
             }
         }
 
-        if (!isPunching) return;
-
-        // Continuously disable collisions every frame while punching
-        DisablePlayerCollisionExceptEnvironment();
-        DisableEnemyLayerCollisions();
-
-        // Continuously disable gc and wc every frame while punching
-        MonoSingleton<NewMovement>.Instance.gc.enabled = false;
-        MonoSingleton<NewMovement>.Instance.wc.enabled = false;
-
-        punchTimer -= Time.deltaTime;
-
-        RaycastHit[] hits = Physics.SphereCastAll(
-            CameraController.Instance.transform.position,
-            hitRadius,
-            punchDirection,
-            hitDistance
-        );
-
-        foreach (var hit in hits)
+        if (isPunching)
         {
-            if (hit.collider.TryGetComponent<EnemyIdentifierIdentifier>(out var enemyHit))
+            // Continuously disable collisions every frame while punching
+            DisablePlayerCollisionExceptEnvironment();
+            DisableEnemyLayerCollisions();
+
+            // Continuously disable gc and wc every frame while punching
+            if (MonoSingleton<NewMovement>.Instance.gc != null)
+                MonoSingleton<NewMovement>.Instance.gc.enabled = false;
+            if (MonoSingleton<NewMovement>.Instance.wc != null)
+                MonoSingleton<NewMovement>.Instance.wc.enabled = false;
+
+            punchTimer -= Time.deltaTime;
+
+            RaycastHit[] hits = Physics.SphereCastAll(
+                CameraController.Instance.transform.position,
+                hitRadius,
+                punchDirection,
+                hitDistance
+            );
+
+            foreach (var hit in hits)
             {
-                if (alreadyHitEnemies.Contains(enemyHit.eid))
-                    continue;
+                if (hit.collider.TryGetComponent<EnemyIdentifierIdentifier>(out var enemyHit))
+                {
+                    if (alreadyHitEnemies.Contains(enemyHit.eid))
+                        continue;
 
-                float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
-                float chargeDamageMultiplier = Mathf.Lerp(minDamageMultiplier, maxDamageMultiplier, chargePercent);
+                    float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
+                    float chargeDamageMultiplier = Mathf.Lerp(minDamageMultiplier, maxDamageMultiplier, chargePercent);
 
-                float currentSpeed = NewMovement.Instance.rb.velocity.magnitude;
-                float velocityDamageBonus = (currentSpeed * velocityDamagePerMPS);
+                    float currentSpeed = NewMovement.Instance.rb.velocity.magnitude;
+                    float velocityDamageBonus = (currentSpeed * velocityDamagePerMPS);
 
-                float totalDamageMultiplier = chargeDamageMultiplier + velocityDamageBonus;
-                float finalDamage = baseDamage * totalDamageMultiplier;
+                    float totalDamageMultiplier = chargeDamageMultiplier + velocityDamageBonus;
+                    float finalDamage = baseDamage * totalDamageMultiplier;
 
-                enemyHit.eid.hitter = "riskofrain2loaderreference";
-                enemyHit.eid.DeliverDamage(
-                    hit.collider.gameObject,
-                    punchDirection * punchForce * chargePercent,
-                    hit.point,
-                    finalDamage,
-                    false,
-                    sourceWeapon: null
-                );
+                    enemyHit.eid.hitter = "riskofrain2loaderreference";
+                    enemyHit.eid.DeliverDamage(
+                        hit.collider.gameObject,
+                        punchDirection * punchForce * chargePercent,
+                        hit.point,
+                        finalDamage,
+                        false,
+                        sourceWeapon: null
+                    );
 
-                alreadyHitEnemies.Add(enemyHit.eid);
-                TimeController.Instance.HitStop(0.05f);
+                    alreadyHitEnemies.Add(enemyHit.eid);
+                }
+            }
+
+            if (punchTimer <= 0f)
+            {
+                EndPunch();
             }
         }
+    }
 
-        if (punchTimer <= 0f)
-        {
-            isPunching = false;
-            chargeTime = 0f;
+    private void EndPunch()
+    {
+        isPunching = false;
+        chargeTime = 0f;
 
-            // Restore original collision states
-            RestoreCollisionStates();
+        // Restore all collision states
+        RestoreAllCollisionStates();
 
-            // Re-enable components
-            VerticalClippingBlocker vcb =
-               MonoSingleton<NewMovement>.Instance.GetComponent<VerticalClippingBlocker>();
+        // Re-enable components
+        VerticalClippingBlocker vcb =
+           MonoSingleton<NewMovement>.Instance.GetComponent<VerticalClippingBlocker>();
+        if (vcb != null)
             vcb.enabled = true;
+        if (MonoSingleton<NewMovement>.Instance.gc != null)
             MonoSingleton<NewMovement>.Instance.gc.enabled = true;
+        if (MonoSingleton<NewMovement>.Instance.wc != null)
             MonoSingleton<NewMovement>.Instance.wc.enabled = true;
+    }
+
+    private void OnDisable()
+    {
+        // Safety: restore collisions if this component gets disabled mid-punch
+        if (isPunching)
+        {
+            EndPunch();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Safety: restore collisions if this component gets destroyed mid-punch
+        if (isPunching)
+        {
+            EndPunch();
         }
     }
 }

@@ -138,42 +138,54 @@ namespace NewBananaWeapons
         public static IEnumerator ApplyShaderToGameObject(GameObject gameObject)
         {
             yield return new WaitUntil(() => LoadedShaders);
-            bool flag = gameObject == null;
-            if (flag)
-            {
+
+            if (gameObject == null)
                 yield break;
-            }
+
             foreach (Renderer renderer in gameObject.GetComponentsInChildren<Renderer>(true))
             {
-                bool flag2 = !(renderer == null);
-                if (flag2)
+                if (renderer == null)
+                    continue;
+
+                var shared = renderer.sharedMaterials;
+                Material[] newMats = null; // only allocate if needed
+                bool changed = false;
+
+                for (int i = 0; i < shared.Length; i++)
                 {
-                    Material[] array2 = new Material[renderer.sharedMaterials.Length];
-                    int num;
-                    for (int i = 0; i < renderer.sharedMaterials.Length; i = num + 1)
+                    Material mat = shared[i];
+                    if (mat == null || mat.shader == null)
+                        continue;
+
+                    if (ShaderManager.modifiedMaterials.Contains(mat))
+                        continue;
+
+                    if (mat.shader.name == "ULTRAKILL/PostProcessV2")
+                        continue;
+
+                    if (ShaderManager.shaderDictionary.TryGetValue(mat.shader.name, out Shader replacement))
                     {
-                        Material material = renderer.sharedMaterials[i];
-                        array2[i] = material;
-                        Shader shader = null;
-                        bool flag3 = !(material == null) && !(material.shader == null) && !ShaderManager.modifiedMaterials.Contains(material) && !(material.shader.name == "ULTRAKILL/PostProcessV2") && ShaderManager.shaderDictionary.TryGetValue(material.shader.name, out shader);
-                        if (flag3)
+                        // First time we actually change something → clone array
+                        if (!changed)
                         {
-                            array2[i].shader = shader;
-                            ShaderManager.modifiedMaterials.Add(material);
+                            newMats = (Material[])shared.Clone();
+                            changed = true;
                         }
-                        material = null;
-                        shader = null;
-                        num = i;
+
+                        newMats[i] = new Material(mat); // instance new material
+                        newMats[i].shader = replacement;
+                        ShaderManager.modifiedMaterials.Add(newMats[i]);
                     }
-                    renderer.materials = array2;
-                    array2 = null;
                 }
-                //renderer = null;
+
+                // Only apply if something changed
+                if (changed)
+                    renderer.materials = newMats;
             }
-            Renderer[] array3 = null;
+
             yield return null;
-            yield break;
         }
+
 
         // Token: 0x0400000C RID: 12
         public static Dictionary<string, Shader> shaderDictionary = new Dictionary<string, Shader>();
