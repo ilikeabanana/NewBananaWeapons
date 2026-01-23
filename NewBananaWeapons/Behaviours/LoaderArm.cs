@@ -62,8 +62,6 @@ public class LoaderArm : MonoBehaviour
         NewMovement.Instance.Launch(punchDirection, launchVelocity, true);
         isCharging = false;
         isHoldingCharge = false;
-
-        // Save ALL layer collision states comprehensively
         SaveAllCollisionStates();
         hasStoredCollisions = true;
     }
@@ -71,8 +69,6 @@ public class LoaderArm : MonoBehaviour
     private void SaveAllCollisionStates()
     {
         originalAllCollisionStates.Clear();
-
-        // Save all possible layer collision combinations
         for (int i = 0; i < 32; i++)
         {
             for (int j = i; j < 32; j++)
@@ -90,12 +86,10 @@ public class LoaderArm : MonoBehaviour
         int outdoorsLayer = LayerMask.NameToLayer("Outdoors");
         for (int i = 0; i < 32; i++)
         {
-            // Skip environment + outdoors so those still collide
             if (i == environmentLayer || i == outdoorsLayer)
                 continue;
             Physics.IgnoreLayerCollision(playerLayer, i, true);
         }
-        // Also disable vertical clipping blocker like before
         VerticalClippingBlocker vcb =
             MonoSingleton<NewMovement>.Instance.GetComponent<VerticalClippingBlocker>();
         if (vcb != null)
@@ -147,6 +141,7 @@ public class LoaderArm : MonoBehaviour
     private void Awake()
     {
         anim = GetComponent<Animator>();
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(GetComponent<Punch>().dustParticle));
     }
 
     void Update()
@@ -168,11 +163,9 @@ public class LoaderArm : MonoBehaviour
 
         if (isPunching)
         {
-            // Continuously disable collisions every frame while punching
             DisablePlayerCollisionExceptEnvironment();
             DisableEnemyLayerCollisions();
 
-            // Continuously disable gc and wc every frame while punching
             if (MonoSingleton<NewMovement>.Instance.gc != null)
                 MonoSingleton<NewMovement>.Instance.gc.enabled = false;
             if (MonoSingleton<NewMovement>.Instance.wc != null)
@@ -229,10 +222,8 @@ public class LoaderArm : MonoBehaviour
         isPunching = false;
         chargeTime = 0f;
 
-        // Restore all collision states
         RestoreAllCollisionStates();
 
-        // Re-enable components
         VerticalClippingBlocker vcb =
            MonoSingleton<NewMovement>.Instance.GetComponent<VerticalClippingBlocker>();
         if (vcb != null)
@@ -241,20 +232,20 @@ public class LoaderArm : MonoBehaviour
             MonoSingleton<NewMovement>.Instance.gc.enabled = true;
         if (MonoSingleton<NewMovement>.Instance.wc != null)
             MonoSingleton<NewMovement>.Instance.wc.enabled = true;
+
+        MonoSingleton<NewMovement>.Instance.Launch(Vector3.up, 0.1f, true);
     }
 
     private void OnDisable()
     {
-        // Safety: restore collisions if this component gets disabled mid-punch
         if (isPunching)
         {
             EndPunch();
         }
     }
-
+     
     private void OnDestroy()
     {
-        // Safety: restore collisions if this component gets destroyed mid-punch
         if (isPunching)
         {
             EndPunch();
