@@ -4,16 +4,23 @@ using UnityEngine;
 
 public class MaxwellWeapon : MonoBehaviour
 {
+    public GameObject MaxwellPrefab;
     GameObject maxwell;
 
     int pets;
-
+    Animator anim;
+    void Awake()
+    {
+        anim = GetComponent<Animator>(); 
+    }
     // Update is called once per frame
     void Update()
     {
-        Transform camTrans = CameraController.Instance.transform;
+        anim.SetBool("PetMax", false);
+        anim.SetBool("ThrowMax", false);
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && pets < 5)
         {
+            anim.SetBool("PetMax", true);
             pets++;
             if(pets == 5)
             {
@@ -23,18 +30,23 @@ public class MaxwellWeapon : MonoBehaviour
 
         if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame && maxwell == null)
         {
-            RaycastHit hit;
-            if(Physics.Raycast(camTrans.position, camTrans.forward, out hit, 45, 
-                LayerMaskDefaults.Get(LMD.Environment)))
-            {
-                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                Destroy(cube.GetComponent<Collider>());
-                MaxwellProjectile max = cube.AddComponent<MaxwellProjectile>();
-                max.pets = pets;
-                max.orgPos = hit.point;
-            }
+            anim.SetBool("ThrowMax", true);
+        } 
+    }
 
-            
+    public void ThrowMax()
+    { 
+        Transform camTrans = CameraController.Instance.transform;
+        RaycastHit hit;
+        if (Physics.Raycast(camTrans.position, camTrans.forward, out hit, 45,
+            LayerMaskDefaults.Get(LMD.Environment)))
+        {
+            maxwell = Instantiate(MaxwellPrefab, hit.point, Quaternion.identity);
+            MaxwellProjectile max = maxwell.GetComponent<MaxwellProjectile>();
+            max.pets = pets;
+            max.orgPos = hit.point;
         }
+
+
     }
 }
