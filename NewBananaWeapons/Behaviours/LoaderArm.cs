@@ -205,7 +205,21 @@ public class LoaderArm : MonoBehaviour
                         false,
                         sourceWeapon: null
                     );
-
+                    BloodsplatterManager bsm = MonoSingleton<BloodsplatterManager>.Instance;
+                    GoreZone goreZone = enemyHit.eid.GetGoreZone();
+                    GoreType got = GoreType.Head;
+                    GameObject gore = bsm.GetGore(got, this, false);
+                    gore.transform.position = enemyHit.transform.position;
+                    if (goreZone != null && goreZone.goreZone != null)
+                    {
+                        gore.transform.SetParent(goreZone.goreZone, true);
+                    }
+                    Bloodsplatter component = gore.GetComponent<Bloodsplatter>();
+                    if (component != null)
+                    {
+                        component.GetReady();
+                    }
+                    TimeController.Instance.HitStop(0.05f);
                     alreadyHitEnemies.Add(enemyHit.eid);
                 }
             }

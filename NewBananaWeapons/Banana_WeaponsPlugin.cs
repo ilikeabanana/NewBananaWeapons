@@ -243,6 +243,32 @@ namespace NewBananaWeapons
             }
         }
 
+        public static void ApplyKnockBack(EnemyIdentifier eid, Vector3 force)
+        {
+            if (eid.zombie)
+            {
+                //eid.zombie.falling = true;
+                eid.zombie.KnockBack(force);
+                return;
+            }
+            if (eid.machine)
+            {
+                //eid.machine.falling = true;
+                eid.machine.KnockBack(force);
+                return;
+            }
+
+            if (eid.drone)
+            {
+                eid.drone.rb.AddForce(force.normalized * (force.magnitude / 100f), ForceMode.Impulse);
+                return;
+            }
+
+
+            if (eid.rb)
+                eid.rb.AddForce(force.normalized * (force.magnitude / 100f), ForceMode.Impulse);
+        }
+
         public static GameObject MakeGun(int var, GameObject original)
         {
             int num = var;
@@ -340,7 +366,7 @@ namespace NewBananaWeapons
                 mockGun.AddComponent<WeaponIdentifier>();
                 mockGun.AddComponent<WeaponPos>();
 
-                mockGun.AddComponent<PotassiumWeapon>();
+                mockGun.AddComponent<MaxwellWeapon>();
 
                 MakeGun(5, mockGun);
             }
@@ -506,6 +532,15 @@ namespace NewBananaWeapons
                 if (hitter == "table")
                 {
                     __instance.AddPoints(76, "TABLED", eid, sourceWeapon);
+                }
+
+                if(hitter == "riskofrain2loaderreference")
+                {
+                    __instance.AddPoints(13, "", eid, sourceWeapon);
+                    if (dead)
+                    {
+                        __instance.AddPoints(135, "CHARGED", eid, sourceWeapon);
+                    }
                 }
             }
         }
