@@ -233,7 +233,7 @@ public class LoaderArm : MonoBehaviour
         if (MonoSingleton<NewMovement>.Instance.wc != null)
             MonoSingleton<NewMovement>.Instance.wc.enabled = true;
 
-        MonoSingleton<NewMovement>.Instance.Launch(Vector3.up, 0.1f, true);
+        //MonoSingleton<NewMovement>.Instance.Launch(Vector3.up, 0.1f, true);
     }
 
     private void OnDisable()
