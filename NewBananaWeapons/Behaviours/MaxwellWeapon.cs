@@ -7,8 +7,11 @@ public class MaxwellWeapon : MonoBehaviour
 {
     public GameObject MaxwellPrefab;
     public GameObject MaxwellTrans;
+    public AudioClip meowSound;
     public Material MaxwellEnraged;
     public Material MaxwellNormal;
+
+    AudioSource source;
     GameObject maxwell;
 
     int pets;
@@ -17,6 +20,7 @@ public class MaxwellWeapon : MonoBehaviour
     void Awake()
     {
         anim = GetComponent<Animator>();
+        source = GetComponent<AudioSource>();
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(MaxwellPrefab));
     }
     // Update is called once per frame
@@ -28,6 +32,7 @@ public class MaxwellWeapon : MonoBehaviour
         {
             anim.SetBool("PetMax", true);
             pets++;
+            source.PlayOneShot(meowSound);
             if(pets == 5)
             {
                 rage = Instantiate(AddressableManager.rageEffect,

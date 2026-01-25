@@ -122,12 +122,14 @@ public class MaxwellProjectile : MonoBehaviour
         {
             timer = 0;
             goBackToPlayer = true;
+            transform.GetChild(0).gameObject.SetActive(false);
         }
 
         if (timer >= 1 && goToThePosition)
         {
             timer = pets * 1.5f;
             goToThePosition = false;
+            transform.GetChild(0).gameObject.SetActive(true);
         }
         else if (timer >= 1 && goBackToPlayer)
         {
