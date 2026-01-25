@@ -32,7 +32,7 @@ public class MaxwellProjectile : MonoBehaviour
         float radius = 25f;
         float inwardStrength = 60f;
         float spinStrength = 90f;
-        float liftStrength = 189;
+        float liftStrength = 45 * pets;
         float damageInterval = 0.25f;
 
         damageTickTimer -= Time.deltaTime;

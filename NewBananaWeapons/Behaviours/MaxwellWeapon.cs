@@ -21,23 +21,27 @@ public class MaxwellWeapon : MonoBehaviour
     {
         anim = GetComponent<Animator>();
         source = GetComponent<AudioSource>();
-        StartCoroutine(ShaderManager.ApplyShaderToGameObject(MaxwellPrefab));
     }
     // Update is called once per frame
     void Update()
     {
         anim.SetBool("PetMax", false);
         anim.SetBool("ThrowMax", false);
-        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && pets < 5)
+        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && pets < 5
+            && !Banana_WeaponsPlugin.cooldowns.ContainsKey(gameObject))
         {
             anim.SetBool("PetMax", true);
             pets++;
             source.PlayOneShot(meowSound);
+            Banana_WeaponsPlugin.cooldowns.Add(gameObject, 1.35f);
             if(pets == 5)
             {
                 rage = Instantiate(AddressableManager.rageEffect,
-                    transform);
+                    MaxwellTrans.transform);
+                StartCoroutine(ShaderManager.ApplyShaderToGameObject(MaxwellTrans));
+                MaxwellTrans.GetComponent<Renderer>().material = MaxwellEnraged;
                 rage.layer = gameObject.layer;
+                rage.transform.localScale /= 4;
                 // make maxwell ENRAGED
             }
         }
@@ -58,6 +62,8 @@ public class MaxwellWeapon : MonoBehaviour
             maxwell = Instantiate(MaxwellPrefab, hit.point, MaxwellPrefab.transform.rotation);
             maxwell.transform.localScale *= 3;
             MaxwellProjectile max = maxwell.GetComponent<MaxwellProjectile>();
+            if(pets == 5)
+                maxwell.GetComponent<Renderer>().material = MaxwellEnraged;
             max.pets = pets;
             max.orgPos = hit.point;
             rage.transform.parent = max.transform;
@@ -65,6 +71,9 @@ public class MaxwellWeapon : MonoBehaviour
             rage.transform.localScale *= 2;
             rage.layer = maxwell.layer;
             pets = 0;
+            MaxwellTrans.GetComponent<Renderer>().material = MaxwellNormal;
+            StartCoroutine(ShaderManager.ApplyShaderToGameObject(MaxwellTrans));
+            StartCoroutine(ShaderManager.ApplyShaderToGameObject(maxwell));
         }
 
 
