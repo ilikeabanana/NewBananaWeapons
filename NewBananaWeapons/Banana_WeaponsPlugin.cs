@@ -243,6 +243,35 @@ namespace NewBananaWeapons
             }
         }
 
+        public static void LaunchPlayer(Vector3 dir, float mult = 8, bool ignoreMass = false)
+        {
+            NewMovement nm = NewMovement.Instance;
+
+            if (nm.groundProperties && !nm.groundProperties.launchable)
+            {
+                return;
+            }
+            if (dir == Vector3.down && nm.gc.onGround)
+            {
+                return;
+            }
+            nm.jumping = true;
+            nm.Invoke("NotJumping", 0.5f);
+            nm.jumpCooldown = true;
+            nm.Invoke("JumpReady", 0.2f);
+            nm.boost = false;
+            if (nm.gc.heavyFall)
+            {
+                nm.fallSpeed = 0f;
+                nm.gc.heavyFall = false;
+                if (nm.currentFallParticle != null)
+                {
+                    UnityEngine.Object.Destroy(nm.currentFallParticle);
+                }
+            }
+            nm.rb.AddForce(Vector3.ClampMagnitude(dir, 1000f) * mult, ignoreMass ? ForceMode.VelocityChange : ForceMode.Impulse);
+        }
+
         public static void ApplyKnockBack(EnemyIdentifier eid, Vector3 force)
         {
             if (eid.zombie)

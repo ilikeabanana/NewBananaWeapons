@@ -27,7 +27,7 @@ public class MaxwellProjectile : MonoBehaviour
 
     void DoAttackThings()
     {
-        transform.Rotate(0f, 120f * Time.deltaTime, 0f);
+        transform.Rotate(0, 0, 690f * Time.deltaTime);
 
         float radius = 25f;
         float inwardStrength = 60f;
@@ -41,7 +41,7 @@ public class MaxwellProjectile : MonoBehaviour
         {
             damageTickTimer = damageInterval;
             doDamageTick = true;
-        }
+        } 
 
         foreach (EnemyIdentifier en in EnemyTracker.Instance.GetCurrentEnemies())
         {
@@ -109,7 +109,7 @@ public class MaxwellProjectile : MonoBehaviour
                 }
             }
 
-            nm.rb.AddForce(Vector3.up * (liftStrength / 25) * t, ForceMode.VelocityChange);
+            nm.rb.AddForce(Vector3.up * (liftStrength / 35) * t, ForceMode.VelocityChange);
         }
     }
     void HandleTiming()
@@ -117,7 +117,7 @@ public class MaxwellProjectile : MonoBehaviour
         if (!goBackToPlayer && !goToThePosition)
             timer -= Time.deltaTime;
         else
-            timer += Time.deltaTime;
+            timer += Time.deltaTime * 3;
         if (timer <= 0 && !goBackToPlayer && !goToThePosition)
         {
             timer = 0;

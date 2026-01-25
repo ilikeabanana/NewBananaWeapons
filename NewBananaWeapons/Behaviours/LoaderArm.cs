@@ -59,7 +59,7 @@ public class LoaderArm : MonoBehaviour
         float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
 
         float launchVelocity = chargedPunchVelocity * chargePercent;
-        NewMovement.Instance.Launch(punchDirection, launchVelocity, true);
+        Banana_WeaponsPlugin.LaunchPlayer(punchDirection, launchVelocity, true);
         isCharging = false;
         isHoldingCharge = false;
         SaveAllCollisionStates();
