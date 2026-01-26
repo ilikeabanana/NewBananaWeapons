@@ -1,12 +1,16 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class SmartPistol : MonoBehaviour
 {
     public List<EnemyIdentifier> targets = new List<EnemyIdentifier>();
     public Dictionary<EnemyIdentifier, LineRenderer> lRend = new Dictionary<EnemyIdentifier, LineRenderer>();
+    public Transform firePoint;
+    public TMP_Text targetCountDisplay;
+
 
     float targetingDelay = 0.2f;
     float t = 0f;
