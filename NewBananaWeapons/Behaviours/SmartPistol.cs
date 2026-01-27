@@ -11,6 +11,7 @@ public class SmartPistol : MonoBehaviour
     public Dictionary<EnemyIdentifier, List<LineRenderObject>> lRend = new Dictionary<EnemyIdentifier, List<LineRenderObject>>();
     public Transform firePoint;
     public TMP_Text targetCountDisplay;
+    public AudioClip shootSound;
 
     Animator anim;
 
@@ -198,6 +199,7 @@ public class SmartPistol : MonoBehaviour
             anim.SetFloat("RandomChance", Random.Range(0f, 1f));
             GameObject beam = Instantiate(AddressableManager.normalBeam, firePoint.position, Quaternion.identity);
             anim.SetTrigger("Shoot");
+            GetComponentInParent<AudioSource>().PlayOneShot(shootSound);
             Transform targetPoint = target.transform;
             if (target.weakPoint != null)
                 targetPoint = target.weakPoint.transform;

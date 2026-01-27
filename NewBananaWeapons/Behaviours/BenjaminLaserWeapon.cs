@@ -34,8 +34,24 @@ public class BenjaminLaserWeapon : MonoBehaviour
 
     public void FireLaser()
     {
+        Transform camTrans = CameraController.Instance.transform;
         Instantiate(laser, CameraController.Instance.transform.position, 
             CameraController.Instance.transform.rotation).transform.Rotate(90, 0, 0);
-        Banana_WeaponsPlugin.cooldowns.Add(gameObject, 25);
+        Banana_WeaponsPlugin.cooldowns.Add(gameObject, 120);
+
+        RaycastHit[] justFuckingHitEverythingTBH = Physics.SphereCastAll(
+            camTrans.position, 1317.042f, camTrans.forward, 100000, LayerMaskDefaults.Get(LMD.Enemies));
+
+        foreach (var hit in justFuckingHitEverythingTBH)
+        {
+            
+            if(hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
+            {
+                eidd.eid.hitter = "BenjaminBeam";
+                eidd.eid.DeliverDamage(hit.collider.gameObject, camTrans.forward * int.MaxValue, hit.point,
+                    125, true);
+
+            }
+        }
     }
 }
