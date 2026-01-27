@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using NewBananaWeapons;
+using System.Collections;
 using UnityEngine;
 
 
@@ -14,6 +15,7 @@ public class TableWeapon : MonoBehaviour
     private void Awake()
     {
         anim = GetComponent<Animator>();
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(tableProjectile));
     }
 
     // Update is called once per frame

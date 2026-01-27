@@ -395,7 +395,7 @@ namespace NewBananaWeapons
                 mockGun.AddComponent<WeaponIdentifier>();
                 mockGun.AddComponent<WeaponPos>();
 
-                mockGun.AddComponent<SmartPistol>();
+                mockGun.AddComponent<RobloxWeapon>();
 
                 MakeGun(5, mockGun);
             }

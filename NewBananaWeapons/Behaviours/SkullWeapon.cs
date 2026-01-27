@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using NewBananaWeapons;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ public class SkullWeapon : MonoBehaviour
     void Start()
     {
         anim = GetComponent<Animator>();
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(skullProjectile));
     }
 
     public void Throw()
@@ -79,7 +81,7 @@ public class SkullWeapon : MonoBehaviour
             instEyes.GetComponent<SpriteRenderer>().rendererPriority = 99999;
             instEyes.GetComponent<SpriteRenderer>().material.renderQueue = 40000;
 
-            StartCoroutine(delayedReset(enemy, attack, ignore, instEyes));
+            Banana_WeaponsPlugin.Instance.StartCoroutine(delayedReset(enemy, attack, ignore, instEyes));
         }
 
         
@@ -92,7 +94,7 @@ public class SkullWeapon : MonoBehaviour
 
     IEnumerator delayedReset(EnemyIdentifier enemy, bool attack, bool ignore, GameObject eyes)
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(10);
         enemy.ignorePlayer = ignore;
         enemy.attackEnemies = attack;
         Destroy(eyes);
