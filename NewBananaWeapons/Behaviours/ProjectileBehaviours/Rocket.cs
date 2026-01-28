@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour
 {
+    public GameObject explosion;
     float speed = 9f;
     // Update is called once per frame
     void Update()
@@ -16,7 +17,7 @@ public class Rocket : MonoBehaviour
     {
         if(LayerMaskDefaults.IsMatchingLayer(hit.gameObject.layer, LMD.EnemiesAndEnvironment))
         {
-            Instantiate(AddressableManager.bigExplosion, transform.position, Quaternion.identity);
+            Instantiate(explosion, transform.position, Quaternion.identity);
             Destroy(gameObject);
         }
         

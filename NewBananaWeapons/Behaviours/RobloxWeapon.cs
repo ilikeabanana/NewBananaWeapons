@@ -1,10 +1,16 @@
 ﻿using NewBananaWeapons;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class RobloxWeapon : MonoBehaviour
 {
+    public GameObject bomb;
+    public GameObject superBall;
+    public GameObject pellet;
+    public GameObject rocket;
+
+    public Animator weaponAnimator;
+
     int curWeapon = 0;
 
     public List<GameObject> weaponObjects = new List<GameObject>()
@@ -12,42 +18,92 @@ public class RobloxWeapon : MonoBehaviour
         null, null, null, null, null, null, null, null, null
     };
 
+    void Start()
+    {
+        UpdateWeaponActive();
+         
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(bomb));
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(superBall));
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(pellet));
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(rocket));
+    }
+
     void Update()
     {
-        // ROBLOX, ITS FREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        if (!GunControl.Instance.activated)
+            return;
 
-        if (GunControl.Instance.activated)
+        // Speed change
+        NewMovement.Instance.walkSpeed = (curWeapon == 8) ? 1500 : 750;
+
+        // Fire
+        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame)
         {
-            if(curWeapon == 8)
-            {
-                NewMovement.Instance.walkSpeed = 1500;
-            }
-            else
-            {
-                NewMovement.Instance.walkSpeed = 750;
-            }
+            FireCurrentWeapon();
+        }
 
-            if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame)
-            {
-                switch (curWeapon)
-                {
-                    case 0: SwordAttack(); break;
-                    case 1: BombAttack(); break;
-                    case 2: RocketAttack(); break;
-                    case 3: PaintballGun(); break;
-                    case 4: SlingshotAttack(); break;
-                    case 5: SuperballAttack(); break;
-                    case 6: TrowelBuild(); break;
-                    case 7: Hamburger(); break;
-                }
-            }
-
-            if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
-            {
-                curWeapon = (curWeapon + 1) % weaponObjects.Count;
-            }
+        // Switch weapon
+        if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
+        {
+            curWeapon = (curWeapon + 1) % weaponObjects.Count;
+            UpdateWeaponActive();
         }
     }
+
+    void UpdateWeaponActive()
+    {
+        for (int i = 0; i < weaponObjects.Count; i++)
+        {
+            if (weaponObjects[i] != null)
+                weaponObjects[i].SetActive(i == curWeapon);
+        }
+
+        if (weaponAnimator != null)
+            weaponAnimator.SetTrigger("SwitchWeapon");
+    }
+
+    void FireCurrentWeapon()
+    {
+        PlayFireSound();
+
+        switch (curWeapon)
+        {
+            case 0: SwordAttack(); break;
+            case 1: BombAttack(); break;
+            case 2: RocketAttack(); break;
+            case 3: PaintballGun(); break;
+            case 4: SlingshotAttack(); break;
+            case 5: SuperballAttack(); break;
+            case 6: TrowelBuild(); break;
+            case 7: Hamburger(); break;
+        }
+    }
+
+    // ----------------------------------------------------
+    // Utility: Fire point resolving + sound
+    // ----------------------------------------------------
+
+    Transform GetFirePoint()
+    {
+        GameObject w = weaponObjects[curWeapon];
+        if (w != null && w.TryGetComponent(out RobloxWeaponSounds s) && s.firePoint != null)
+            return s.firePoint;
+
+        return CameraController.Instance.transform;
+    }
+
+    void PlayFireSound()
+    {
+        GameObject w = weaponObjects[curWeapon];
+        if (w != null && w.TryGetComponent(out RobloxWeaponSounds s) && s.fireSound != null)
+        {
+            w.GetComponent<AudioSource>().PlayOneShot(s.fireSound);
+        }
+    }
+
+    // ----------------------------------------------------
+    // Attacks
+    // ----------------------------------------------------
 
     void Hamburger()
     {
@@ -56,52 +112,123 @@ public class RobloxWeapon : MonoBehaviour
 
     void SlingshotAttack()
     {
-        GameObject pellet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        pellet.transform.position = CameraController.Instance.transform.position + CameraController.Instance.transform.forward * 1.2f;
-        pellet.transform.localScale *= 0.5f;
+        Transform fp = GetFirePoint();
 
-        Rigidbody rb = pellet.AddComponent<Rigidbody>();
-        Collider col = pellet.GetOrAddComponent<Collider>();
-        col.material = new PhysicMaterial()
-        {
-            bounciness = 0.9f,
-            bounceCombine = PhysicMaterialCombine.Maximum,
-            frictionCombine = PhysicMaterialCombine.Minimum
-        };
+        GameObject proj = Instantiate(pellet, fp.position, fp.rotation);
+        Rigidbody rb = proj.GetComponent<Rigidbody>();
+        if (rb == null) rb = proj.AddComponent<Rigidbody>();
 
-        rb.velocity = CameraController.Instance.transform.forward * 25f;
+        rb.velocity = fp.forward * 25f;
+        proj.AddComponent<SuperBallProjectile>().damage = 15;
 
-        pellet.GetComponent<MeshRenderer>().material = new Material(AddressableManager.unlit);
-        pellet.GetComponent<MeshRenderer>().material.color = Color.white;
-
-        pellet.AddComponent<SuperBallProjectile>().damage = 15;
-        Destroy(pellet, 9f);
+        Destroy(proj, 9f);
     }
 
     void SuperballAttack()
     {
-        GameObject ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        ball.transform.position = CameraController.Instance.transform.position + CameraController.Instance.transform.forward * 1.2f;
-        ball.transform.localScale *= 1.2f;
-        ball.AddComponent<SuperBallProjectile>();
+        Transform fp = GetFirePoint();
 
-        Rigidbody rb = ball.AddComponent<Rigidbody>();
+        GameObject proj = Instantiate(superBall, fp.position, fp.rotation);
+        Rigidbody rb = proj.GetComponent<Rigidbody>();
+        if (rb == null) rb = proj.AddComponent<Rigidbody>();
+
         rb.mass = 0.8f;
-        rb.velocity = CameraController.Instance.transform.forward * 18f;
+        rb.velocity = fp.forward * 18f;
         rb.angularVelocity = Random.insideUnitSphere * 10f;
 
-        Collider col = ball.GetOrAddComponent<Collider>();
-        col.material = new PhysicMaterial()
+        Destroy(proj, 10f);
+    }
+
+    void RocketAttack()
+    {
+        Transform fp = GetFirePoint();
+
+        GameObject proj = Instantiate(rocket, fp.position, fp.rotation);
+        proj.AddComponent<Rocket>();
+    }
+
+    void BombAttack()
+    {
+        Transform fp = GetFirePoint();
+
+        GameObject proj = Instantiate(bomb, fp.position, fp.rotation);
+        proj.AddComponent<Bomb>();
+    }
+
+    void PaintballGun()
+    {
+        GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        rock.transform.position = CameraController.Instance.transform.position;
+        rock.transform.forward = CameraController.Instance.transform.forward;
+        rock.transform.localScale *= 1.3f;
+        Rigidbody rb = rock.AddComponent<Rigidbody>();
+        rock.GetOrAddComponent<Collider>().isTrigger = true;
+        rb.isKinematic = true;
+        rock.AddComponent<Paintball>();
+        rock.GetComponent<MeshRenderer>().material = new Material(AddressableManager.unlit);
+
+        Vector3 randColor = Random.insideUnitCircle;
+        rock.GetComponent<MeshRenderer>().material.color = new Color(randColor.x, randColor.y, randColor.z);
+    }
+
+    // ----------------------------------------------------
+    // Sword unchanged
+    // ----------------------------------------------------
+
+    void SwordAttack()
+    {
+        Transform cam = CameraController.Instance.transform;
+        Vector3 origin = cam.position;
+        Vector3 dir = cam.forward;
+
+        bool hitEnemy = false;
+        RaycastHit hit;
+
+        if (!Physics.Raycast(origin, dir, out hit, 4f, LayerMaskDefaults.Get(LMD.Enemies), QueryTriggerInteraction.Collide))
         {
-            bounciness = 0.9f,
-            bounceCombine = PhysicMaterialCombine.Maximum,
-            frictionCombine = PhysicMaterialCombine.Minimum
-        };
+            Physics.BoxCast(origin, Vector3.one * 0.3f, dir, out hit, cam.rotation, 4f,
+                LayerMaskDefaults.Get(LMD.Enemies), QueryTriggerInteraction.Collide);
+        }
 
-        ball.GetComponent<MeshRenderer>().material = new Material(AddressableManager.unlit);
-        ball.GetComponent<MeshRenderer>().material.color = Color.yellow;
+        if (hit.collider != null && hit.collider.TryGetComponent(out EnemyIdentifierIdentifier eidd))
+        {
+            DealSwordDamage(eidd, hit.point, dir);
+            hitEnemy = true;
+        }
 
-        Destroy(ball, 10f);
+        if (!hitEnemy)
+        {
+            Collider[] closeHits = Physics.OverlapSphere(origin + dir * 1.5f, 1f,
+                LayerMaskDefaults.Get(LMD.Enemies), QueryTriggerInteraction.Collide);
+
+            foreach (Collider c in closeHits)
+            {
+                if (c.TryGetComponent(out EnemyIdentifierIdentifier eiddd))
+                {
+                    DealSwordDamage(eiddd, c.transform.position, dir);
+                    hitEnemy = true;
+                    break;
+                }
+            }
+        }
+
+        if (hitEnemy)
+        {
+            MonoSingleton<TimeController>.Instance.HitStop(0.05f);
+            CameraController.Instance.CameraShake(0.2f);
+        }
+    }
+
+    void DealSwordDamage(EnemyIdentifierIdentifier eidd, Vector3 hitPoint, Vector3 direction)
+    {
+        EnemyIdentifier eid = eidd.eid;
+        eid.DeliverDamage(
+            eidd.gameObject,
+            direction * 100f,
+            hitPoint,
+            25,
+            false
+        );
     }
 
     void TrowelBuild()
@@ -153,110 +280,4 @@ public class RobloxWeapon : MonoBehaviour
             }
         }
     }
-
-
-
-
-    void PaintballGun()
-    {
-        GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        rock.transform.position = CameraController.Instance.transform.position;
-        rock.transform.forward = CameraController.Instance.transform.forward;
-        rock.transform.localScale *= 1.3f;
-        Rigidbody rb = rock.AddComponent<Rigidbody>();
-        rock.GetOrAddComponent<Collider>().isTrigger = true;
-        rb.isKinematic = true;
-        rock.AddComponent<Paintball>();
-        rock.GetComponent<MeshRenderer>().material = new Material(AddressableManager.unlit);
-
-        Vector3 randColor = Random.insideUnitCircle;
-        rock.GetComponent<MeshRenderer>().material.color = new Color(randColor.x, randColor.y, randColor.z);
-    }
-
-    void RocketAttack()
-    {
-        GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        rock.transform.position = CameraController.Instance.transform.position;
-        rock.transform.forward = CameraController.Instance.transform.forward;
-        rock.transform.localScale *= 1.3f;
-        Rigidbody rb = rock.AddComponent<Rigidbody>();
-        rock.GetOrAddComponent<Collider>().isTrigger = true;
-        rb.isKinematic = true;
-        rock.AddComponent<Rocket>();
-        rock.GetComponent<MeshRenderer>().material = new Material(AddressableManager.unlit);
-        rock.GetComponent<MeshRenderer>().material.color = Color.grey;
-    }
-
-    void BombAttack()
-    {
-        GameObject bomb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        bomb.transform.position = CameraController.Instance.transform.position;
-        bomb.transform.localScale *= 2;
-        bomb.AddComponent<Rigidbody>();
-        AudioSource aud = bomb.AddComponent<AudioSource>();
-        aud.pitch = 2;
-        bomb.AddComponent<Bomb>();
-        bomb.GetComponent<MeshRenderer>().material = new Material(AddressableManager.unlit);
-        bomb.GetComponent<MeshRenderer>().material.color = Color.black;
-    }
-
-    void SwordAttack()
-    {
-        Transform cam = CameraController.Instance.transform;
-        Vector3 origin = cam.position;
-        Vector3 dir = cam.forward;
-
-        bool hitEnemy = false;
-        RaycastHit hit;
-
-        if (!Physics.Raycast(origin, dir, out hit, 4f, LayerMaskDefaults.Get(LMD.Enemies), QueryTriggerInteraction.Collide))
-        {
-            Physics.BoxCast(origin, Vector3.one * 0.3f, dir, out hit, cam.rotation, 4f,
-                LayerMaskDefaults.Get(LMD.Enemies), QueryTriggerInteraction.Collide);
-        }
-
-        if (hit.collider != null)
-        {
-            if (hit.collider.TryGetComponent(out EnemyIdentifierIdentifier eidd))
-            {
-                DealSwordDamage(eidd, hit.point, dir);
-                hitEnemy = true;
-            }
-        }
-
-        if (!hitEnemy)
-        {
-            Collider[] closeHits = Physics.OverlapSphere(origin + dir * 1.5f, 1f,
-                LayerMaskDefaults.Get(LMD.Enemies), QueryTriggerInteraction.Collide);
-
-            foreach (Collider c in closeHits)
-            {
-                if (c.TryGetComponent(out EnemyIdentifierIdentifier eidd))
-                {
-                    DealSwordDamage(eidd, c.transform.position, dir);
-                    hitEnemy = true;
-                    break;
-                }
-            }
-        }
-
-        if (hitEnemy)
-        {
-            MonoSingleton<TimeController>.Instance.HitStop(0.05f);
-            CameraController.Instance.CameraShake(0.2f);
-        }
-    }
-    void DealSwordDamage(EnemyIdentifierIdentifier eidd, Vector3 hitPoint, Vector3 direction)
-    {
-        EnemyIdentifier eid = eidd.eid;
-        eid.DeliverDamage(
-            eidd.gameObject,
-            direction * 100f,
-            hitPoint,
-            25,
-            false
-        );
-    }
-
-
 }

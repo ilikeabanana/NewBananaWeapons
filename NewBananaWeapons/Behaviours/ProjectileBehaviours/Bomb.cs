@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class Bomb : MonoBehaviour
 {
+    public AudioClip tickSound;
+    public GameObject explosion;
     float timeBeforeExplosion = 3f;
     float timeBeforeNextColorSwitch;
     AudioSource source;
@@ -13,7 +15,9 @@ public class Bomb : MonoBehaviour
 
     void Start()
     {
-        bombMat = GetComponent<MeshRenderer>().material;
+        GetComponentInChildren<MeshRenderer>().material = new Material(GetComponentInChildren<MeshRenderer>().material);
+
+        bombMat = GetComponentInChildren<MeshRenderer>().material;
         timeBeforeNextColorSwitch = timeBeforeExplosion / 4;
         source = GetComponent<AudioSource>();
     }
@@ -27,14 +31,14 @@ public class Bomb : MonoBehaviour
         
         if(timeBeforeNextColorSwitch <= 0f)
         {
-            source.PlayOneShot(AddressableManager.negativeNotifi);
+            source.PlayOneShot(tickSound);
             timeBeforeNextColorSwitch = timeBeforeExplosion / 4;
             bombMat.color = bombMat.color == Color.black ? Color.red : Color.black;
         }
 
         if(timeBeforeExplosion <= 0f)
         {
-            Instantiate(AddressableManager.explosion, transform.position, Quaternion.identity);
+            Instantiate(explosion, transform.position, Quaternion.identity);
             Destroy(gameObject);
         }
     }

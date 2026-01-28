@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class CharlesWeapon : MonoBehaviour
 {
+    public GameObject helicopter;
 
     // Update is called once per frame
     void Update()
@@ -14,12 +15,7 @@ public class CharlesWeapon : MonoBehaviour
         {
             if (Physics.Raycast(CamTrans.position, CamTrans.forward, out RaycastHit hit, 1000, LayerMaskDefaults.Get(LMD.Environment)))
             {
-                GameObject heli = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                heli.transform.localScale *= 10;
-                heli.transform.position = hit.point + new Vector3(0, 100, 0);
-                heli.AddComponent<HelicopterProjectile>();
-                heli.AddComponent<Rigidbody>().isKinematic = true;
-                heli.GetComponent<Collider>().isTrigger = true;
+                Instantiate(helicopter, hit.point + new Vector3(0, 100, 0), helicopter.transform.rotation);
             }
         }
     }
