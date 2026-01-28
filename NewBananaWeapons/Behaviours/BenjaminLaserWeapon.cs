@@ -1,5 +1,6 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BenjaminLaserWeapon : MonoBehaviour
@@ -41,15 +42,31 @@ public class BenjaminLaserWeapon : MonoBehaviour
 
         RaycastHit[] justFuckingHitEverythingTBH = Physics.SphereCastAll(
             camTrans.position, 1317.042f, camTrans.forward, 100000, LayerMaskDefaults.Get(LMD.Enemies));
-
+        List<EnemyIdentifier> alreadyHitEnemies = new List<EnemyIdentifier>();
         foreach (var hit in justFuckingHitEverythingTBH)
         {
             
             if(hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
             {
+                Vector3 toEnemy = (eidd.transform.position - camTrans.position).normalized;
+                if (Vector3.Dot(camTrans.forward, toEnemy) <= 0f)
+                    continue;
+
+
+                if (eidd.eid.enemyType == EnemyType.Centaur && SceneHelper.CurrentScene == "Level 7-4")
+                {
+                    foreach (var eid in EnemyTracker.Instance.GetCurrentEnemies())
+                    {
+                        eid.InstaKill();
+                    }
+                    break;
+                }
+                if (alreadyHitEnemies.Contains(eidd.eid)) continue;
+
                 eidd.eid.hitter = "BenjaminBeam";
                 eidd.eid.DeliverDamage(hit.collider.gameObject, camTrans.forward * int.MaxValue, hit.point,
                     125, true);
+                alreadyHitEnemies.Add(eidd.eid);
 
             }
         }

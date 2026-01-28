@@ -19,6 +19,7 @@ namespace NewBananaWeapons
         public static GameObject bigExplosion;
         public static GameObject blueFlash;
         public static GameObject rageEffect;
+        public static GameObject rubbleBig;
 
         // Sounds
         public static AudioClip negativeNotifi;
@@ -37,6 +38,7 @@ namespace NewBananaWeapons
             explosion = await LoadAddressable<GameObject>("Assets/Prefabs/Attacks and Projectiles/Explosions/Explosion.prefab");
             blueFlash = await LoadAddressable<GameObject>("Assets/Particles/Flashes/V2FlashUnparriable.prefab");
             rageEffect = await LoadAddressable<GameObject>("Assets/Particles/Enemies/RageEffect.prefab");
+            rubbleBig = await LoadAddressable<GameObject>("Assets/Particles/RubbleBigDistant.prefab");
 
             lineMat = await LoadAddressable<Material>("Assets/Materials/Sprites/SpitLine.mat");
             unlit = await LoadAddressable<Shader>("Assets/Shaders/Main/ULTRAKILL-unlit.shader");

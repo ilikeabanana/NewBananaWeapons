@@ -389,15 +389,13 @@ namespace NewBananaWeapons
 
             if (Input.GetKeyDown(KeyCode.Insert))
             {
-                GameObject mockGun = new GameObject("mockgun");
-                mockGun.SetActive(false);
-                mockGun.AddComponent<WeaponIcon>();
-                mockGun.AddComponent<WeaponIdentifier>();
-                mockGun.AddComponent<WeaponPos>();
+                GameObject mockGunReblex = AddMockGun(PrimitiveType.Capsule);
+                mockGunReblex.AddComponent<RobloxWeapon>();
+                GameObject mockGunCarhels = AddMockGun(PrimitiveType.Plane);
+                mockGunCarhels.AddComponent<CharlesWeapon>();
 
-                mockGun.AddComponent<RobloxWeapon>();
-
-                MakeGun(5, mockGun);
+                MakeGun(5, mockGunReblex);
+                MakeGun(5, mockGunCarhels);
             }
 
             if (Input.GetKeyDown(KeyCode.End))
@@ -430,7 +428,18 @@ namespace NewBananaWeapons
                 }
             }
         }
+        GameObject AddMockGun(PrimitiveType primitive)
+        {
+            GameObject mockGun = GameObject.CreatePrimitive(primitive);
+            Destroy(mockGun.GetComponent<Collider>());
+            mockGun.transform.position = new Vector3(0.7f, -0.8f, 0.8f);
+            mockGun.SetActive(false);
+            mockGun.AddComponent<WeaponIcon>();
+            mockGun.AddComponent<WeaponIdentifier>();
+            mockGun.AddComponent<WeaponPos>();
 
+            return mockGun;
+        }
         public void AddArm(GameObject arm)
         {
             if (arm == null) return;
