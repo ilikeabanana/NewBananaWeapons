@@ -7,6 +7,17 @@ public class Rocket : MonoBehaviour
 {
     public GameObject explosion;
     float speed = 9f;
+
+    void Start()
+    {
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(explosion));
+
+        foreach (var exp in explosion.GetComponentsInChildren<Explosion>())
+        {
+            StartCoroutine(ShaderManager.ApplyShaderToGameObject(exp.explosionChunk));
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {

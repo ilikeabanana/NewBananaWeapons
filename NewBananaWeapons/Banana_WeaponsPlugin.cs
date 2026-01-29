@@ -274,28 +274,37 @@ namespace NewBananaWeapons
 
         public static void ApplyKnockBack(EnemyIdentifier eid, Vector3 force)
         {
-            if (eid.zombie)
+            try
             {
-                //eid.zombie.falling = true;
-                eid.zombie.KnockBack(force);
-                return;
+                if (eid.zombie)
+                {
+                    //eid.zombie.falling = true;
+                    eid.zombie.KnockBack(force);
+                    return;
+                }
+                if (eid.machine)
+                {
+                    //eid.machine.falling = true;
+                    eid.machine.KnockBack(force);
+                    return;
+                }
+
+                if (eid.drone)
+                {
+                    eid.drone.rb.AddForce(force.normalized * (force.magnitude / 100f), ForceMode.Impulse);
+                    return;
+                }
+
+
+                if (eid.rb)
+                    eid.rb.AddForce(force.normalized * (force.magnitude / 100f), ForceMode.Impulse);
+
             }
-            if (eid.machine)
+            catch(Exception e)
             {
-                //eid.machine.falling = true;
-                eid.machine.KnockBack(force);
-                return;
             }
 
-            if (eid.drone)
-            {
-                eid.drone.rb.AddForce(force.normalized * (force.magnitude / 100f), ForceMode.Impulse);
-                return;
-            }
-
-
-            if (eid.rb)
-                eid.rb.AddForce(force.normalized * (force.magnitude / 100f), ForceMode.Impulse);
+            
         }
 
         public static GameObject MakeGun(int var, GameObject original)
@@ -389,13 +398,10 @@ namespace NewBananaWeapons
 
             if (Input.GetKeyDown(KeyCode.Insert))
             {
-                GameObject mockGunReblex = AddMockGun(PrimitiveType.Capsule);
-                mockGunReblex.AddComponent<RobloxWeapon>();
-                GameObject mockGunCarhels = AddMockGun(PrimitiveType.Plane);
-                mockGunCarhels.AddComponent<CharlesWeapon>();
+                GameObject mockgunjjk = AddMockGun(PrimitiveType.Capsule);
+                mockgunjjk.AddComponent<JujutsuKaisenTechniques>();
 
-                MakeGun(5, mockGunReblex);
-                MakeGun(5, mockGunCarhels);
+                MakeGun(5, mockgunjjk);
             }
 
             if (Input.GetKeyDown(KeyCode.End))

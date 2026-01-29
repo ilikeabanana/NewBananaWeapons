@@ -1,4 +1,5 @@
 ﻿using NewBananaWeapons;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ public class RobloxWeapon : MonoBehaviour
     public GameObject pellet;
     public GameObject rocket;
 
-    public Animator weaponAnimator;
+    Animator weaponAnimator;
 
     int curWeapon = 0;
 
@@ -17,6 +18,9 @@ public class RobloxWeapon : MonoBehaviour
     {
         null, null, null, null, null, null, null, null, null
     };
+
+
+    Quaternion swordRestRotation;
 
     void Start()
     {
@@ -26,10 +30,18 @@ public class RobloxWeapon : MonoBehaviour
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(superBall));
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(pellet));
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(rocket));
+        swordRestRotation = weaponObjects[curWeapon].transform.localRotation;
+
+        weaponAnimator = GetComponent<Animator>();
+
     }
 
     void Update()
     {
+        Vector3 worldRot = transform.eulerAngles;
+        worldRot.x = 0f; // lock world X axis
+        transform.eulerAngles = worldRot;
+
         if (!GunControl.Instance.activated)
             return;
 
@@ -117,7 +129,7 @@ public class RobloxWeapon : MonoBehaviour
         GameObject proj = Instantiate(pellet, fp.position, fp.rotation);
         Rigidbody rb = proj.GetComponent<Rigidbody>();
         if (rb == null) rb = proj.AddComponent<Rigidbody>();
-
+        rb.excludeLayers = LayerMask.NameToLayer("Ignore Raycast");
         rb.velocity = fp.forward * 25f;
         proj.AddComponent<SuperBallProjectile>().damage = 15;
 
@@ -131,6 +143,7 @@ public class RobloxWeapon : MonoBehaviour
         GameObject proj = Instantiate(superBall, fp.position, fp.rotation);
         Rigidbody rb = proj.GetComponent<Rigidbody>();
         if (rb == null) rb = proj.AddComponent<Rigidbody>();
+        rb.excludeLayers = LayerMask.NameToLayer("Ignore Raycast");
 
         rb.mass = 0.8f;
         rb.velocity = fp.forward * 18f;
@@ -174,9 +187,21 @@ public class RobloxWeapon : MonoBehaviour
     // ----------------------------------------------------
     // Sword unchanged
     // ----------------------------------------------------
+    Coroutine swordSwingRoutine;
 
     void SwordAttack()
     {
+        Transform t = weaponObjects[curWeapon].transform;
+
+        // Force snap back to rest before starting new swing
+        t.localRotation = swordRestRotation;
+
+        if (swordSwingRoutine != null)
+            StopCoroutine(swordSwingRoutine);
+
+        swordSwingRoutine = StartCoroutine(SwordSwing());
+
+
         Transform cam = CameraController.Instance.transform;
         Vector3 origin = cam.position;
         Vector3 dir = cam.forward;
@@ -218,6 +243,34 @@ public class RobloxWeapon : MonoBehaviour
             CameraController.Instance.CameraShake(0.2f);
         }
     }
+
+    IEnumerator SwordSwing()
+    {
+        GameObject w = weaponObjects[curWeapon];
+        if (w == null) yield break;
+
+        Transform t = w.transform;
+
+        Quaternion startRot = swordRestRotation;
+        Quaternion swingRot = startRot * Quaternion.Euler(0f, -90f, 0f);
+
+        float swingTime = 0.08f;
+        float timer = 0f;
+
+        while (timer < swingTime)
+        {
+            timer += Time.deltaTime;
+            float t01 = timer / swingTime;
+            t.localRotation = Quaternion.Slerp(startRot, swingRot, t01);
+            yield return null;
+        }
+
+        // Snap cleanly back to rest at the end
+        t.localRotation = startRot;
+        swordSwingRoutine = null;
+    }
+
+
 
     void DealSwordDamage(EnemyIdentifierIdentifier eidd, Vector3 hitPoint, Vector3 direction)
     {

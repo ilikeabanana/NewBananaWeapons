@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class HelicopterProjectile : MonoBehaviour
 {
-    float speed = 72;
+    float speed = 270;
     // Update is called once per frame
     void Update()
     {

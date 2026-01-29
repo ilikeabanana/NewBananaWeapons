@@ -20,6 +20,13 @@ public class Bomb : MonoBehaviour
         bombMat = GetComponentInChildren<MeshRenderer>().material;
         timeBeforeNextColorSwitch = timeBeforeExplosion / 4;
         source = GetComponent<AudioSource>();
+
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(explosion));
+
+        foreach (var exp in explosion.GetComponentsInChildren<Explosion>())
+        {
+            StartCoroutine(ShaderManager.ApplyShaderToGameObject(exp.explosionChunk));
+        }
     }
 
     // Update is called once per frame
