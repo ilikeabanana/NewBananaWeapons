@@ -20,9 +20,11 @@ namespace NewBananaWeapons
         public static GameObject blueFlash;
         public static GameObject rageEffect;
         public static GameObject rubbleBig;
+        public static GameObject blackholekaboom;
 
         // Sounds
         public static AudioClip negativeNotifi;
+        public static AudioClip blackholeLaunch;
 
         // Material shit
         public static Material lineMat;
@@ -39,11 +41,13 @@ namespace NewBananaWeapons
             blueFlash = await LoadAddressable<GameObject>("Assets/Particles/Flashes/V2FlashUnparriable.prefab");
             rageEffect = await LoadAddressable<GameObject>("Assets/Particles/Enemies/RageEffect.prefab");
             rubbleBig = await LoadAddressable<GameObject>("Assets/Particles/RubbleBigDistant.prefab");
+            blackholekaboom = await LoadAddressable<GameObject>("Assets/Particles/BlackHoleExplosion.prefab");
 
             lineMat = await LoadAddressable<Material>("Assets/Materials/Sprites/SpitLine.mat");
             unlit = await LoadAddressable<Shader>("Assets/Shaders/Main/ULTRAKILL-unlit.shader");
 
             negativeNotifi = await LoadAddressable<AudioClip>("Assets/Sounds/UI/Negative_Notification_25.wav");
+            blackholeLaunch = await LoadAddressable<AudioClip>("Assets/Sounds/Weapons/BlackHoleLaunch.wav");
         }
 
         public static async Task<T> LoadAddressable<T>(string path)

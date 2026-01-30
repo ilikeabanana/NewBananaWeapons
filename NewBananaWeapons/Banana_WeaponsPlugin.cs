@@ -225,6 +225,7 @@ namespace NewBananaWeapons
         {
             addedArms.Clear();
             addedWeapons.Clear();
+            cooldowns.Clear();
             if (AddressableManager.lightningBoltWindup == null)
             {
                 AddressableManager.GetAssets();
@@ -239,7 +240,7 @@ namespace NewBananaWeapons
             {
                 GameObject dttalkInstance = Instantiate(dttalkPrefab);
                 StartCoroutine(ShaderManager.ApplyShaderToGameObject(dttalkInstance));
-                Logger.LogInfo("Instantiated dttalk in scene: " + arg0.name);
+
             }
         }
 
@@ -400,8 +401,19 @@ namespace NewBananaWeapons
             {
                 GameObject mockgunjjk = AddMockGun(PrimitiveType.Capsule);
                 mockgunjjk.AddComponent<JujutsuKaisenTechniques>();
+                GameObject mockgunlazer = AddMockGun(PrimitiveType.Cube);
+                mockgunlazer.AddComponent<LaserBeam>();
 
                 MakeGun(5, mockgunjjk);
+                GameObject mockgunNuke = AddMockGun(PrimitiveType.Sphere);
+                mockgunNuke.AddComponent<NukeWeapon>();
+
+                MakeGun(5, mockgunNuke);
+                MakeGun(5, mockgunlazer);
+
+                Destroy(mockgunjjk);
+                Destroy(mockgunlazer);
+                Destroy(mockgunNuke);
             }
 
             if (Input.GetKeyDown(KeyCode.End))
@@ -443,7 +455,8 @@ namespace NewBananaWeapons
             mockGun.AddComponent<WeaponIcon>();
             mockGun.AddComponent<WeaponIdentifier>();
             mockGun.AddComponent<WeaponPos>();
-
+            mockGun.AddComponent<AudioSource>();
+            Destroy(mockGun.GetComponent<Collider>());
             return mockGun;
         }
         public void AddArm(GameObject arm)
@@ -471,6 +484,15 @@ namespace NewBananaWeapons
                 MonoSingleton<FistControl>.Instance.fistIconColor = MonoSingleton<ColorBlindSettings>.Instance.variationColors[0];
 
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(NewMovement), nameof(NewMovement.Respawn))]
+        public static class NewMovement_ResetCooldowns_Patch
+        {
+            public static void Postfix()
+            {
+                Banana_WeaponsPlugin.cooldowns.Clear();
             }
         }
 
@@ -584,6 +606,15 @@ namespace NewBananaWeapons
                     if (dead)
                     {
                         __instance.AddPoints(135, "CHARGED", eid, sourceWeapon);
+                    }
+                }
+
+                if(hitter == "beam")
+                {
+                    __instance.AddPoints(3, "", eid, sourceWeapon);
+                    if (dead)
+                    {
+                        __instance.AddPoints(175, "FRIED", eid, sourceWeapon);
                     }
                 }
             }

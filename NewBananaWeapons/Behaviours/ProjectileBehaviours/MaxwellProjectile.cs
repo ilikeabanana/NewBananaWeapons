@@ -17,7 +17,11 @@ public class MaxwellProjectile : MonoBehaviour
     {
         HandleTiming();
 
-        if(!goBackToPlayer && !goToThePosition)
+        
+    }
+    void FixedUpdate()
+    {
+        if (!goBackToPlayer && !goToThePosition)
         {
             DoAttackThings();
         }

@@ -17,11 +17,22 @@ public class MississipiQueen : MonoBehaviour
     void Awake()
     {
         anim = GetComponent<Animator>();
+        
         missippiQueen = GetComponent<AudioSource>();
+
+        if(interiorMat == null)
+        {
+            interiorMat = transform.GetChild(0).GetComponentInChildren<Renderer>().material;
+        }
     }
 
     void Update()
     {
+        if (doingSequence)
+        {
+            TimeController.Instance.timeScaleModifier = 0;
+        }
+
         anim.SetBool("Fire", false);
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && !doingSequence)
         {
@@ -30,13 +41,18 @@ public class MississipiQueen : MonoBehaviour
             missippiQueen.Play();
 
             // Stop time (Ultrakill-style)
-            TimeController.Instance.timeScale = 0;
+            TimeController.Instance.timeScaleModifier = 0;
+            //Time.timeScale = 0;
             TimeController.Instance.RestoreTime();
+            anim.speed = 0.25f;
 
-            // Play animator sequence if exists
-            if (anim != null)
-                anim.SetTrigger("StartSequence");
+            AudioMixerController.Instance.SetMusicVolume(0);
         }
+    }
+
+    void OnDisable()
+    {
+        EndSequence();
     }
 
     // Called by animation event
@@ -74,16 +90,16 @@ public class MississipiQueen : MonoBehaviour
     public void FireBullet()
     {
         if (firePoint == null)
-            firePoint = transform;
+            firePoint = CameraController.Instance.transform;
 
         Ray ray = new Ray(firePoint.position, firePoint.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, bulletRange))
+        if (Physics.Raycast(ray, out RaycastHit hit, bulletRange, LayerMaskDefaults.Get(LMD.Enemies)))
         {
             // Try deal damage if target has health
-            var health = hit.collider.GetComponent<EnemyIdentifier>();
+            var health = hit.collider.GetComponent<EnemyIdentifierIdentifier>();
             if (health != null)
             {
-                health.SimpleDamage(bulletDamage);
+                health.eid.SimpleDamage(bulletDamage);
             }
 
             // Debug impact
@@ -96,8 +112,10 @@ public class MississipiQueen : MonoBehaviour
     {
         doingSequence = false;
         missippiQueen.Stop();
+        anim.speed = 1f;
         // Restore normal time
-        TimeController.Instance.timeScale = 1f;
+        TimeController.Instance.timeScaleModifier = 1f;
         TimeController.Instance.RestoreTime();
+        AudioMixerController.Instance.SetMusicVolume(AudioMixerController.Instance.optionsMusicVolume);
     }
 }
