@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class JujutsuKaisenTechniques : MonoBehaviour
 {
+    public Transform blueCharge;
+    public Transform redCharge;
+
+    public GameObject blueProjectile;
+    public GameObject redProjectile;
+    public GameObject purpleProjectile;
+
     bool chargingBlue;
     bool chargingRed;
     bool chargingPurple;
@@ -27,6 +34,8 @@ public class JujutsuKaisenTechniques : MonoBehaviour
         {
             if (chargingBlue)
             {
+                Instantiate(blueProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
+                /*
                 GameObject blueProj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 blueProj.AddComponent<TechniqueProjectile>();
                 blueProj.AddComponent<TechniqueProjectile>().technique = TechniqueProjectile.TechniqueType.Blue;
@@ -35,10 +44,12 @@ public class JujutsuKaisenTechniques : MonoBehaviour
                 source.PlayOneShot(AddressableManager.blackholeLaunch);
                 blueProj.GetComponent<Renderer>().material = new Material(AddressableManager.unlit);
                 blueProj.GetComponent<Renderer>().material.color = Color.blue;
-                Banana_WeaponsPlugin.cooldowns.Add(gameObject, 3.5f);
+                Banana_WeaponsPlugin.cooldowns.Add(gameObject, 3.5f);*/
             }
             else if (chargingRed)
             {
+                Instantiate(redProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
+                /*
                 GameObject blueProj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 blueProj.AddComponent<TechniqueProjectile>().technique = TechniqueProjectile.TechniqueType.Red;
                 blueProj.transform.position = CameraController.Instance.transform.position;
@@ -46,10 +57,12 @@ public class JujutsuKaisenTechniques : MonoBehaviour
                 blueProj.GetComponent<Renderer>().material = new Material(AddressableManager.unlit);
                 blueProj.GetComponent<Renderer>().material.color = Color.red;
                 source.PlayOneShot(AddressableManager.blackholeLaunch);
-                Banana_WeaponsPlugin.cooldowns.Add(gameObject, 3.5f);
+                Banana_WeaponsPlugin.cooldowns.Add(gameObject, 3.5f);*/
             }
             else if (chargingPurple)
             {
+                Instantiate(purpleProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
+                /*
                 GameObject blueProj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 blueProj.AddComponent<TechniqueProjectile>();
                 blueProj.AddComponent<TechniqueProjectile>().technique = TechniqueProjectile.TechniqueType.Purple;
@@ -59,7 +72,7 @@ public class JujutsuKaisenTechniques : MonoBehaviour
                 blueProj.GetComponent<Renderer>().material = new Material(AddressableManager.unlit);
                 blueProj.GetComponent<Renderer>().material.color = new Color(120, 0, 120);
                 blueProj.transform.localScale *= 10;
-                Banana_WeaponsPlugin.cooldowns.Add(gameObject, 4.5f);
+                Banana_WeaponsPlugin.cooldowns.Add(gameObject, 4.5f);*/
             }
             chargingBlue = false;
             chargingRed = false;

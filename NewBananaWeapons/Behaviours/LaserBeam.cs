@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class LaserBeam : MonoBehaviour
 {
+    public GameObject chargeParticle;
+
     float charging = 0.0f;
     InputManager inman;
     CameraController cam;
@@ -15,7 +17,7 @@ public class LaserBeam : MonoBehaviour
         inman = InputManager.Instance;
         cam = CameraController.Instance;
         line = gameObject.AddComponent<LineRenderer>();
-        line.widthMultiplier = 3;
+        line.widthMultiplier = 3; 
     }
 
     // Update is called once per frame
