@@ -97,6 +97,7 @@ public class TechniqueProjectile : MonoBehaviour
 
                 if (technique == TechniqueType.Purple)
                 {
+                    if (enemy.dead) continue;
                     StyleHUD.Instance.AddPoints(125, "PURPLED");
                     enemy.InstaKill();
                     Destroy(enemy.gameObject);

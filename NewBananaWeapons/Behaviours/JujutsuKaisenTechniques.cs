@@ -19,20 +19,17 @@ public class JujutsuKaisenTechniques : MonoBehaviour
 
     float blueTimer;
     float redTimer;
-    float purpleTimer;
 
     [Header("Charge Visuals")]
     public float maxChargeScale = 1.5f;
-    public float scaleSpeed = 2f;
-    public float spiralRadius = 0.2f;
-    public float spiralSpeed = 6f;
 
     Vector3 blueStartScale;
     Vector3 redStartScale;
     Vector3 purpleStartScale;
 
-    float spiralTime;
-
+    Vector3 blueStartPos;
+    Vector3 redStartPos;
+    Vector3 purpleStartPos;
 
     InputManager inman;
     AudioSource source;
@@ -42,16 +39,18 @@ public class JujutsuKaisenTechniques : MonoBehaviour
         inman = InputManager.Instance;
         source = GetComponent<AudioSource>();
 
-        // Disable visuals at start
         blueCharge.gameObject.SetActive(false);
         redCharge.gameObject.SetActive(false);
-
         purpleCharge.gameObject.SetActive(false);
 
+        // ✅ CORRECT: scale vs position
         blueStartScale = blueCharge.localScale;
         redStartScale = redCharge.localScale;
         purpleStartScale = purpleCharge.localScale;
 
+        blueStartPos = blueCharge.localPosition;
+        redStartPos = redCharge.localPosition;
+        purpleStartPos = purpleCharge.localPosition;
     }
 
     void Update()
@@ -69,56 +68,43 @@ public class JujutsuKaisenTechniques : MonoBehaviour
         // BLUE
         if (inman.InputSource.Fire1.IsPressed && !chargingPurple)
         {
-            chargingBlue = true;
             blueTimer += Time.deltaTime;
-        }
-        else
-        {
-            chargingBlue = false;
-            blueTimer = 0f;
+            if (blueTimer >= chargeTime)
+                chargingBlue = true;
         }
 
         // RED
         if (inman.InputSource.Fire2.IsPressed && !chargingPurple)
         {
-            chargingRed = true;
             redTimer += Time.deltaTime;
-        }
-        else
-        {
-            chargingRed = false;
-            redTimer = 0f;
+            if (redTimer >= chargeTime)
+                chargingRed = true;
         }
 
-        // PURPLE (both held for 1 second)
-        if (chargingBlue && chargingRed && blueTimer >= chargeTime && redTimer >= chargeTime)
+        // PURPLE — latch immediately once both are charged
+        if (chargingBlue && chargingRed)
         {
             chargingPurple = true;
-            purpleTimer += Time.deltaTime;
-        }
-        else
-        {
-            chargingPurple = false;
-            purpleTimer = 0f;
         }
     }
 
     void HandleRelease()
     {
-        if (inman.InputSource.Fire1.WasCanceledThisFrame || inman.InputSource.Fire2.WasCanceledThisFrame)
+        if (inman.InputSource.Fire1.WasCanceledThisFrame ||
+            inman.InputSource.Fire2.WasCanceledThisFrame)
         {
             Vector3 pos = CameraController.Instance.transform.position;
             Quaternion rot = CameraController.Instance.transform.rotation;
 
-            if (chargingPurple && purpleTimer >= chargeTime)
+            if (chargingPurple)
             {
-                Instantiate(purpleProjectile, pos, rot).transform.localScale *= 10f;
+                Instantiate(purpleProjectile, pos, rot);
             }
-            else if (chargingBlue && blueTimer >= chargeTime)
+            else if (chargingBlue)
             {
                 Instantiate(blueProjectile, pos, rot);
             }
-            else if (chargingRed && redTimer >= chargeTime)
+            else if (chargingRed)
             {
                 Instantiate(redProjectile, pos, rot);
             }
@@ -129,99 +115,88 @@ public class JujutsuKaisenTechniques : MonoBehaviour
 
     void HandleVisuals()
     {
-        spiralTime += Time.deltaTime;
-
         // BLUE
-        if (chargingBlue)
+        if (inman.InputSource.Fire1.IsPressed)
         {
             blueCharge.gameObject.SetActive(true);
-
             float t = Mathf.Clamp01(blueTimer / chargeTime);
             blueCharge.localScale = Vector3.Lerp(
                 blueStartScale,
                 blueStartScale * maxChargeScale,
                 t
             );
-
-            Vector3 spiralOffset = new Vector3(
-                Mathf.Cos(spiralTime * spiralSpeed),
-                Mathf.Sin(spiralTime * spiralSpeed),
-                0f
-            ) * spiralRadius;
-
-            blueCharge.localPosition = spiralOffset;
         }
         else
         {
             blueCharge.gameObject.SetActive(false);
             blueCharge.localScale = blueStartScale;
+            blueCharge.localPosition = blueStartPos;
         }
 
         // RED
-        if (chargingRed)
+        if (inman.InputSource.Fire2.IsPressed)
         {
             redCharge.gameObject.SetActive(true);
-
             float t = Mathf.Clamp01(redTimer / chargeTime);
             redCharge.localScale = Vector3.Lerp(
                 redStartScale,
                 redStartScale * maxChargeScale,
                 t
             );
-
-            Vector3 spiralOffset = new Vector3(
-                Mathf.Cos(-spiralTime * spiralSpeed),
-                Mathf.Sin(-spiralTime * spiralSpeed),
-                0f
-            ) * spiralRadius;
-
-            redCharge.localPosition = spiralOffset;
         }
         else
         {
             redCharge.gameObject.SetActive(false);
             redCharge.localScale = redStartScale;
+            redCharge.localPosition = redStartPos;
         }
 
-        // PURPLE (COMBINATION)
+        // PURPLE
         if (chargingPurple)
         {
             purpleCharge.gameObject.SetActive(true);
-
-            float t = Mathf.Clamp01(purpleTimer / chargeTime);
             purpleCharge.localScale = Vector3.Lerp(
                 purpleStartScale,
-                purpleStartScale * (maxChargeScale * 1.5f),
-                t
+                purpleStartScale * (maxChargeScale * 2.5f),
+                Time.deltaTime * 6f
             );
 
-            // Pull blue & red inward while spiraling
+            // Visual merge
             blueCharge.position = Vector3.Lerp(
                 blueCharge.position,
                 purpleCharge.position,
-                Time.deltaTime * 6f
+                Time.deltaTime * 8f
             );
 
             redCharge.position = Vector3.Lerp(
                 redCharge.position,
                 purpleCharge.position,
-                Time.deltaTime * 6f
+                Time.deltaTime * 8f
             );
         }
         else
         {
             purpleCharge.gameObject.SetActive(false);
             purpleCharge.localScale = purpleStartScale;
+            purpleCharge.localPosition = purpleStartPos;
         }
     }
 
     void ResetAll()
     {
         chargingBlue = chargingRed = chargingPurple = false;
-        blueTimer = redTimer = purpleTimer = 0f;
+        blueTimer = redTimer = 0f;
 
         blueCharge.gameObject.SetActive(false);
         redCharge.gameObject.SetActive(false);
         purpleCharge.gameObject.SetActive(false);
+
+        blueCharge.localScale = blueStartScale;
+        redCharge.localScale = redStartScale;
+        purpleCharge.localScale = purpleStartScale;
+
+        blueCharge.localPosition = blueStartPos;
+        redCharge.localPosition = redStartPos;
+        purpleCharge.localPosition = purpleStartPos;
     }
 }
