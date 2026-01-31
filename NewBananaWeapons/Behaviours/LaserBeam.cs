@@ -16,7 +16,7 @@ public class LaserBeam : MonoBehaviour
     {
         inman = InputManager.Instance;
         cam = CameraController.Instance;
-        line = gameObject.AddComponent<LineRenderer>();
+        line = gameObject.GetComponent<LineRenderer>();
         line.widthMultiplier = 3; 
     }
 
@@ -28,8 +28,10 @@ public class LaserBeam : MonoBehaviour
         if (inman.InputSource.Fire1.IsPressed)
         {
             charging += Time.deltaTime;
+
             if(charging > 1f)
             {
+                chargeParticle.SetActive(false);
                 if (Physics.SphereCast(cam.GetDefaultPos(), 3, 
                     cam.transform.forward, out RaycastHit hit, 80, LayerMaskDefaults.Get(LMD.EnemiesAndEnvironment)))
                 {
@@ -39,7 +41,7 @@ public class LaserBeam : MonoBehaviour
                         {
                             eidd.eid.hitter = "beam";
                             eidd.eid.SimpleDamage(0.5f);
-                            damageDelay = 0.26f;
+                            damageDelay = 0.1f;
                         }
 
                         
@@ -58,11 +60,13 @@ public class LaserBeam : MonoBehaviour
             }
             else
             {
+                chargeParticle.SetActive(true);
                 line.positionCount = 0;
             } 
         }
         else
         {
+            chargeParticle.SetActive(false);
             line.positionCount = 0;
             charging = 0;
         }
