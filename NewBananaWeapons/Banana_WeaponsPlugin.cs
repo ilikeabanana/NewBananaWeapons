@@ -163,7 +163,7 @@ namespace NewBananaWeapons
                             return;
                         }
 
-                        var loadedAssets = bundle.LoadAsset<GameObject>("FunnySecret");
+                        var loadedAssets = bundle.LoadAsset<GameObject>("bananaplush");
                         if (loadedAssets == null)
                         {
                             Logger.LogError("No GameObjects found in asset bundle");
@@ -388,12 +388,26 @@ namespace NewBananaWeapons
 
             if (funnySecret != null)
             {
-                if (Input.GetKeyDown(KeyCode.Dollar))
+                if (Input.GetKeyDown(KeyCode.F3))
                 {
-
-                    GameObject funny = Instantiate(funnySecret, NewMovement.instance.transform.position, Quaternion.identity);
+                    Vector3 pos = NewMovement.instance.transform.position;
+                    pos += Vector3.up * 100;
+                    pos += CameraController.Instance.transform.forward * 10;
+                    GameObject funny = Instantiate(funnySecret, pos, Quaternion.identity);
 
                     StartCoroutine(ShaderManager.ApplyShaderToGameObject(funny));
+                }
+                if (Input.GetKeyDown(KeyCode.F4))
+                {
+                    for (int i = 0; i < 100; i++)
+                    {
+                        Vector3 pos = NewMovement.instance.transform.position;
+
+                        GameObject funny = Instantiate(funnySecret, pos, Quaternion.identity);
+
+                        StartCoroutine(ShaderManager.ApplyShaderToGameObject(funny));
+                    }
+                    
                 }
             }
 
