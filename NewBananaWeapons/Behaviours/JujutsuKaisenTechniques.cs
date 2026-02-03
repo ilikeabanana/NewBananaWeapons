@@ -158,7 +158,7 @@ public class JujutsuKaisenTechniques : MonoBehaviour
             purpleCharge.localScale = Vector3.Lerp(
                 purpleStartScale,
                 purpleStartScale * (maxChargeScale * 2.5f),
-                Time.deltaTime * 6f
+                Time.deltaTime * 10f
             );
 
             // Visual merge
