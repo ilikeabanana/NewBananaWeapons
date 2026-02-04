@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MississipiQueen : MonoBehaviour
 {
-    public Material interiorMat;
+    public Renderer interiorMat;
     float fadeDuration = 1f;
     float bulletRange = 100f;
     float bulletDamage = 10f;
@@ -19,11 +19,6 @@ public class MississipiQueen : MonoBehaviour
         anim = GetComponent<Animator>();
         
         missippiQueen = GetComponent<AudioSource>();
-
-        if(interiorMat == null)
-        {
-            interiorMat = transform.GetChild(0).GetComponentInChildren<Renderer>().material;
-        }
     }
 
     void Update()
@@ -72,18 +67,15 @@ public class MississipiQueen : MonoBehaviour
         if (interiorMat == null) yield break;
 
         float t = 0f;
-        Color c = interiorMat.color;
 
         while (t < fadeDuration)
         {
             t += Time.unscaledDeltaTime;
-            c.a = Mathf.Lerp(from, to, t / fadeDuration);
-            interiorMat.color = c;
+            interiorMat.material.SetFloat("_Opacity", Mathf.Lerp(from, to, t / fadeDuration));
             yield return null;
         }
 
-        c.a = to;
-        interiorMat.color = c;
+        interiorMat.material.SetFloat("_Opacity", to);
     }
 
     // Called by animation event
