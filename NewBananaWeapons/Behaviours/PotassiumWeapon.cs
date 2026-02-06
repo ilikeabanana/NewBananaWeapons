@@ -5,6 +5,8 @@ using UnityEngine;
 public class PotassiumWeapon : MonoBehaviour
 {
     public GameObject carPrefab;
+    public GameObject bananaPrefab;
+
 
     List<Transform> wayPoints = new List<Transform>();
     LineRenderer line;
@@ -16,6 +18,7 @@ public class PotassiumWeapon : MonoBehaviour
     void Awake()
     {
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(carPrefab));
+        StartCoroutine(ShaderManager.ApplyShaderToGameObject(bananaPrefab));
     }
     void Update()
     {
@@ -54,7 +57,7 @@ public class PotassiumWeapon : MonoBehaviour
             wayPoints = new List<Transform>();
         }
 
-        UpdateLine();
+        //UpdateLine();
     }
     /*
     void AddWaypoint(Vector3 newPos)
@@ -99,7 +102,7 @@ public class PotassiumWeapon : MonoBehaviour
 
     void CreateWaypoint(Vector3 pos)
     {
-        GameObject waypoint = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        GameObject waypoint = Instantiate(bananaPrefab);
         waypoint.transform.position = pos;
         wayPoints.Add(waypoint.transform);
     }

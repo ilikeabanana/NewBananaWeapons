@@ -39,7 +39,7 @@ public class MississipiQueen : MonoBehaviour
             TimeController.Instance.timeScaleModifier = 0;
             //Time.timeScale = 0;
             TimeController.Instance.RestoreTime();
-            anim.speed = 0.25f;
+            anim.speed = 0.15f;
 
             AudioMixerController.Instance.SetMusicVolume(0);
         }
