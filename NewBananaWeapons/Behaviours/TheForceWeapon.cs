@@ -1,20 +1,52 @@
-﻿using NewBananaWeapons;
+﻿using BepInEx.Configuration;
+using NewBananaWeapons;
 using System.Collections;
 using UnityEngine;
 
-public class TheForceWeapon : MonoBehaviour
+public class TheForceWeapon : BaseWeapon
 {
     Animator anim;
     EnemyIdentifier currentTarget;
     Vector3 lastCamForward;
     Vector3 accumulatedThrow;
-    float distance = 25;
     Vector3 offset = Vector3.zero;
 
-    float cooldown = 0;
-    float cooldownOnCrush = 1.5f;
-
     GameObject manipulationEffectCurrent = null;
+
+    // Configurable values
+    private ConfigEntry<float> distance;
+    private ConfigEntry<float> cooldownOnCrush;
+    private ConfigEntry<float> throwForceMultiplier;
+    private ConfigEntry<float> targetingRange;
+    private ConfigEntry<float> bigEnemyDamage;
+    private ConfigEntry<int> implodeStylePoints;
+    private ConfigEntry<bool> allowImplosionOnBigEnemies;
+
+    float cooldown = 0;
+
+    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    {
+        distance = Config.Bind<float>(sectionName, "Hold Distance", 25f,
+            "Distance at which enemies are held from the camera");
+
+        cooldownOnCrush = Config.Bind<float>(sectionName, "Crush Cooldown", 1.5f,
+            "Cooldown after crushing an enemy (in seconds)");
+
+        throwForceMultiplier = Config.Bind<float>(sectionName, "Throw Force Multiplier", 40f,
+            "Multiplier for throw force when releasing enemies");
+
+        targetingRange = Config.Bind<float>(sectionName, "Targeting Range", 25f,
+            "Maximum range for grabbing enemies with the Force");
+
+        bigEnemyDamage = Config.Bind<float>(sectionName, "Big Enemy Crush Damage", 5f,
+            "Damage dealt to big enemies when crushing (they can't be imploded)");
+
+        implodeStylePoints = Config.Bind<int>(sectionName, "Implode Style Points", 100,
+            "Style points awarded for imploding an enemy");
+
+        allowImplosionOnBigEnemies = Config.Bind<bool>(sectionName, "Allow Implosion on Big enemies", false,
+            "Allows you to pickup and implode big enemies.");
+    }
 
     void Awake()
     {
@@ -27,19 +59,19 @@ public class TheForceWeapon : MonoBehaviour
         if (currentTarget != null && currentTarget.dead)
             currentTarget = null;
 
-        if(anim != null)
-        { 
+        if (anim != null)
+        {
             if (anim.GetBool("Crush"))
             {
                 anim.SetBool("Crush", false);
             }
-            if(cooldown <= 0) 
+            if (cooldown <= 0)
                 anim.SetBool("Holding", InputManager.Instance.InputSource.Fire1.IsPressed);
             else
                 anim.SetBool("Holding", false);
         }
 
-        if(cooldown > 0)
+        if (cooldown > 0)
         {
             cooldown -= Time.deltaTime;
         }
@@ -49,67 +81,67 @@ public class TheForceWeapon : MonoBehaviour
         {
             if (currentTarget != null)
             {
-                if (!currentTarget.bigEnemy)
+                if (!currentTarget.bigEnemy || allowImplosionOnBigEnemies.Value)
                 {
                     Vector3 targetPosition;
-                   
+
                     if (Physics.Raycast(camTransform.position, camTransform.forward, out RaycastHit hit,
-                        distance, LayerMaskDefaults.Get(LMD.Environment)))
+                        distance.Value, LayerMaskDefaults.Get(LMD.Environment)))
                     {
                         targetPosition = hit.point;
                     }
                     else
                     {
                         targetPosition = camTransform.position +
-                              camTransform.forward * distance;
+                              camTransform.forward * distance.Value;
                     }
                     currentTarget.transform.position = targetPosition + offset;
                     Vector3 camDelta = camTransform.forward - lastCamForward;
 
                     // Scale controls how strong the throw is
-                    accumulatedThrow += camDelta * 40f;
+                    accumulatedThrow += camDelta * throwForceMultiplier.Value;
 
                     lastCamForward = camTransform.forward;
-                    
+
                 }
-                
+
             }
             else
             {
                 if (Physics.Raycast(camTransform.position, camTransform.forward, out RaycastHit hit,
-                    25, LayerMaskDefaults.Get(LMD.Enemies)))
+                    targetingRange.Value, LayerMaskDefaults.Get(LMD.Enemies)))
                 {
-                    if(hit.collider.
+                    if (hit.collider.
                         gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
                     {
                         EnemyIdentifier eid = eidd.eid;
                         currentTarget = eid;
                         lastCamForward = camTransform.forward;
                         accumulatedThrow = Vector3.zero;
-                        distance = Vector3.Distance(camTransform.position, currentTarget.transform.position);
+                        distance.Value = Vector3.Distance(camTransform.position, currentTarget.transform.position);
                         Vector3 target = camTransform.position +
-                              camTransform.forward * distance;
+                              camTransform.forward * distance.Value;
                         offset = currentTarget.transform.position - target;
-                        if(manipulationEffectCurrent != null)
+                        if (manipulationEffectCurrent != null)
                         {
                             Destroy(manipulationEffectCurrent);
                             manipulationEffectCurrent = null;
                         }
                         manipulationEffectCurrent = Instantiate(AddressableManager.manipulationEffect, currentTarget.transform);
                     }
-                } 
+                }
             }
         }
         else
         {
-            if (currentTarget != null && !currentTarget.bigEnemy)
+            if (currentTarget != null && (!currentTarget.bigEnemy || allowImplosionOnBigEnemies.Value))
             {
                 currentTarget.rb.velocity = Vector3.zero;
                 currentTarget.rb.useGravity = true;
                 currentTarget.rb.AddForce(accumulatedThrow, ForceMode.VelocityChange);
             }
             currentTarget = null;
-            if(manipulationEffectCurrent != null)
+            if (manipulationEffectCurrent != null)
             {
                 Destroy(manipulationEffectCurrent);
                 manipulationEffectCurrent = null;
@@ -119,18 +151,18 @@ public class TheForceWeapon : MonoBehaviour
 
         if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
         {
-            if(currentTarget != null)
+            if (currentTarget != null)
             {
                 if (anim != null)
                     anim.SetBool("Crush", true);
                 if (currentTarget.bigEnemy)
                 {
                     currentTarget.hitter = "implosion";
-                    currentTarget.SimpleDamage(5);
+                    currentTarget.SimpleDamage(bigEnemyDamage.Value);
                 }
                 else
                 {
-                    StyleHUD.Instance.AddPoints(100, "IMPLODED", gameObject);
+                    StyleHUD.Instance.AddPoints(implodeStylePoints.Value, "IMPLODED", gameObject);
                     currentTarget.Explode(false);
                 }
                 if (manipulationEffectCurrent != null)
@@ -139,8 +171,8 @@ public class TheForceWeapon : MonoBehaviour
                     manipulationEffectCurrent = null;
                 }
                 currentTarget = null;
-                cooldown = cooldownOnCrush;
-                    
+                cooldown = cooldownOnCrush.Value;
+
             }
         }
     }

@@ -1,9 +1,10 @@
-﻿using NewBananaWeapons;
+﻿using BepInEx.Configuration;
+using NewBananaWeapons;
 using System.Collections;
 using UnityEngine;
 
 
-public class MaxwellWeapon : MonoBehaviour
+public class MaxwellWeapon : BaseWeapon
 {
     public GameObject MaxwellPrefab;
     public GameObject MaxwellTrans;
@@ -17,6 +18,20 @@ public class MaxwellWeapon : MonoBehaviour
     int pets;
     Animator anim;
     GameObject rage;
+
+    // Configurable values
+    private ConfigEntry<float> petCooldown;
+    private ConfigEntry<int> petsForEnrage;
+
+    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    {
+        petCooldown = Config.Bind<float>(sectionName, "Pet Cooldown", 1.35f,
+            "Cooldown between petting Maxwell (in seconds)");
+
+        petsForEnrage = Config.Bind<int>(sectionName, "Pets For Enrage", 5,
+            "Number of pets required to enrage Maxwell");
+    }
+
     void Awake()
     {
         anim = GetComponent<Animator>();
@@ -27,14 +42,14 @@ public class MaxwellWeapon : MonoBehaviour
     {
         anim.SetBool("PetMax", false);
         anim.SetBool("ThrowMax", false);
-        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && pets < 5
+        if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame && pets < petsForEnrage.Value
             && !Banana_WeaponsPlugin.cooldowns.ContainsKey(gameObject))
         {
             anim.SetBool("PetMax", true);
             pets++;
             source.PlayOneShot(meowSound);
-            Banana_WeaponsPlugin.cooldowns.Add(gameObject, 1.35f);
-            if(pets == 5)
+            Banana_WeaponsPlugin.cooldowns.Add(gameObject, petCooldown.Value);
+            if (pets == petsForEnrage.Value)
             {
                 rage = Instantiate(AddressableManager.rageEffect,
                     MaxwellTrans.transform);
@@ -49,11 +64,11 @@ public class MaxwellWeapon : MonoBehaviour
         if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame && maxwell == null && pets > 0)
         {
             anim.SetBool("ThrowMax", true);
-        } 
+        }
     }
 
     public void ThrowMax()
-    { 
+    {
         Transform camTrans = CameraController.Instance.transform;
         RaycastHit hit;
         if (Physics.Raycast(camTrans.position, camTrans.forward, out hit, 45,
@@ -62,7 +77,7 @@ public class MaxwellWeapon : MonoBehaviour
             maxwell = Instantiate(MaxwellPrefab, hit.point, MaxwellPrefab.transform.rotation);
             maxwell.transform.localScale *= 3;
             MaxwellProjectile max = maxwell.GetComponent<MaxwellProjectile>();
-            if(pets == 5)
+            if (pets == petsForEnrage.Value)
                 maxwell.GetComponent<Renderer>().material = MaxwellEnraged;
             max.pets = pets;
             max.orgPos = hit.point;

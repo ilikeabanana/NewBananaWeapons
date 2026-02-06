@@ -1,4 +1,5 @@
-﻿using NewBananaWeapons;
+﻿using BepInEx.Configuration;
+using NewBananaWeapons;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Security.Policy;
 using System.Text;
 using UnityEngine;
 
-public class LoaderArm : MonoBehaviour
+public class LoaderArm : BaseWeapon
 {
     [Header("Charge Settings")]
     private float maxChargeTime = 2.5f;
@@ -48,6 +49,10 @@ public class LoaderArm : MonoBehaviour
         chargeTime = 0f;
     }
 
+    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    {
+        Config.Bind<float>(sectionName, "Full Charged Punch Velocity", 180);
+    }
     public void Release()
     {
         isHoldingPunch = false;

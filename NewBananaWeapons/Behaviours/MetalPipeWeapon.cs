@@ -1,10 +1,11 @@
-﻿using NewBananaWeapons;
+﻿using BepInEx.Configuration;
+using NewBananaWeapons;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 
-public class MetalPipeWeapon : MonoBehaviour
+public class MetalPipeWeapon : BaseWeapon
 {
     public GameObject metalPipeProjectile;
     public AudioClip slapClip;
@@ -14,6 +15,23 @@ public class MetalPipeWeapon : MonoBehaviour
 
     bool isDamaging = false;
     List<EnemyIdentifier> hitEnemies = new List<EnemyIdentifier>();
+
+    // Configurable values
+    private ConfigEntry<float> slapRange;
+    private ConfigEntry<float> slapDamage;
+    private ConfigEntry<float> slapForce;
+
+    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    {
+        slapRange = Config.Bind<float>(sectionName, "Slap Range", 35f,
+            "Range of the metal pipe slap attack");
+
+        slapDamage = Config.Bind<float>(sectionName, "Slap Damage", 3f,
+            "Damage dealt by charged slap attack");
+
+        slapForce = Config.Bind<float>(sectionName, "Slap Force", 20f,
+            "Knockback force applied by slap");
+    }
 
     private void Awake()
     {
@@ -32,13 +50,13 @@ public class MetalPipeWeapon : MonoBehaviour
         {
             RaycastHit hit;
             if (Physics.Raycast(CameraController.Instance.transform.position,
-                CameraController.Instance.transform.forward, out hit, 35f, LayerMaskDefaults.Get(LMD.Enemies)))
+                CameraController.Instance.transform.forward, out hit, slapRange.Value, LayerMaskDefaults.Get(LMD.Enemies)))
             {
                 if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
                 {
                     if (hitEnemies.Contains(enemyHit.eid)) return;
                     enemyHit.eid.hitter = "Metal";
-                    enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 3, false);
+                    enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * slapForce.Value, enemyHit.transform.position, slapDamage.Value, false);
                     hitEnemies.Add(enemyHit.eid);
                     source.PlayOneShot(slapClip);
                 }
@@ -50,7 +68,7 @@ public class MetalPipeWeapon : MonoBehaviour
             anim.SetBool("RightClick", true);
         }
     }
-     
+
     public void ThrowPipe()
     {
         pipe = Instantiate(metalPipeProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
@@ -61,12 +79,12 @@ public class MetalPipeWeapon : MonoBehaviour
     {
         RaycastHit hit;
         if (Physics.Raycast(CameraController.Instance.transform.position,
-            CameraController.Instance.transform.forward, out hit, 2.5f, LayerMaskDefaults.Get(LMD.Enemies)))
+            CameraController.Instance.transform.forward, out hit, slapRange.Value, LayerMaskDefaults.Get(LMD.Enemies)))
         {
             if (hit.collider.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier enemyHit))
             {
                 enemyHit.eid.hitter = "Metal";
-                enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * 20, enemyHit.transform.position, 1, false, sourceWeapon: gameObject);
+                enemyHit.eid.DeliverDamage(hit.collider.gameObject, CameraController.Instance.transform.forward * slapForce.Value, enemyHit.transform.position, slapDamage.Value, false, sourceWeapon: gameObject);
                 source.PlayOneShot(slapClip);
             }
         }

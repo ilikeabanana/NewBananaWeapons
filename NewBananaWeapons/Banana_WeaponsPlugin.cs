@@ -1,13 +1,14 @@
-﻿using UnityEngine;
-using BepInEx;
-using HarmonyLib;
-using BepInEx.Logging;
-using System.Reflection;
-using UnityEngine.SceneManagement;
-using System.Collections.Generic;
-using System;
-using System.Linq;
+﻿using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
+using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 
 
 namespace NewBananaWeapons
@@ -37,6 +38,7 @@ namespace NewBananaWeapons
 
 
         public Dictionary<GameObject, ConfigEntry<bool>> WeaponsEnabled = new Dictionary<GameObject, ConfigEntry<bool>>();
+        public Dictionary<GameObject, ConfigEntry<int>> WeaponsSlots = new Dictionary<GameObject, ConfigEntry<int>>();
         private void Awake()
         {
             Instance = this;
@@ -74,7 +76,16 @@ namespace NewBananaWeapons
                         bundle.Unload(false);
                         return;
                     }
+                    foreach (var asset in loadedAssets)
+                    {
+                        string sectionName = asset.name;
 
+                        WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true));
+                        if (asset.GetComponentInChildren<BaseWeapon>())
+                        {
+                            asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Config);
+                        }
+                    }
                     BundleArms.AddRange(loadedAssets);
                     bundle.Unload(false);
                 }
@@ -138,7 +149,18 @@ namespace NewBananaWeapons
                         }
                         foreach (var asset in loadedAssets)
                         {
-                            WeaponsEnabled.Add(asset, Config.Bind<bool>(asset.name, "Enabled", true));
+                            string sectionName = asset.name;
+                            if(asset.TryGetComponent<WeaponIcon>(out WeaponIcon wicn))
+                            {
+                                sectionName = wicn.weaponDescriptor.weaponName;
+                            }
+
+                            WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true));
+                            WeaponsSlots.Add(asset, Config.Bind<int>(sectionName, "Slot", 6, "1 is minimum, 6 is max"));
+                            if (asset.GetComponentInChildren<BaseWeapon>())
+                            {
+                                asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Config);
+                            }
                         }
                         BundleWeapons.AddRange(loadedAssets);
                         bundle.Unload(false);
@@ -361,6 +383,16 @@ namespace NewBananaWeapons
                         {
                             MonoSingleton<GunControl>.Instance.transform.GetChild(k).gameObject.SetActive(false);
                         }
+                        string sectionName = gameObject.name;
+                        if (gameObject.TryGetComponent<WeaponIcon>(out WeaponIcon wicn))
+                        {
+                            sectionName = wicn.weaponDescriptor.weaponName;
+                        }
+                        if (gameObject.GetComponentInChildren<BaseWeapon>())
+                        {
+                            gameObject.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Instance.Config);
+                        }
+
                         result = gameObject;
                     }
                 }
@@ -455,7 +487,7 @@ namespace NewBananaWeapons
                 if (obj != null && !addedWeapons.Contains(obj) && WeaponsEnabled[obj].Value)
                 {
                     addedWeapons.Add(obj);
-                    StartCoroutine(ShaderManager.ApplyShaderToGameObject(MakeGun(5, obj)));
+                    StartCoroutine(ShaderManager.ApplyShaderToGameObject(MakeGun(WeaponsSlots[obj].Value - 1, obj)));
 
                 }
             }
@@ -524,6 +556,15 @@ namespace NewBananaWeapons
                         Banana_WeaponsPlugin.Log.LogInfo("Adding... " + addedArms[i].name);
                         GameObject item = UnityEngine.Object.Instantiate(addedArms[i], __instance.transform);
                         __instance.StartCoroutine(ShaderManager.ApplyShaderToGameObject(item));
+                        string sectionName = item.name;
+                        if (item.TryGetComponent<WeaponIcon>(out WeaponIcon wicn))
+                        {
+                            sectionName = wicn.weaponDescriptor.weaponName;
+                        }
+                        if (item.GetComponentInChildren<BaseWeapon>())
+                        {
+                            item.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Instance.Config);
+                        }
                         __instance.spawnedArms.Add(item);
                         __instance.spawnedArmNums.Add(i + 3);
                         /*

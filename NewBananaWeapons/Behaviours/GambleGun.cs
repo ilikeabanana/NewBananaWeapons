@@ -1,9 +1,10 @@
-﻿using NewBananaWeapons;
+﻿using BepInEx.Configuration;
+using NewBananaWeapons;
 using System.Collections;
 using UnityEngine;
 
 
-public class GambleGun : MonoBehaviour
+public class GambleGun : BaseWeapon
 {
     public Transform firePoint;
     Animator anim;
@@ -18,11 +19,51 @@ public class GambleGun : MonoBehaviour
 
     bool spinning;
 
-    bool riggedMode = false; 
+    bool riggedMode = false;
 
     // 0 = Kitr, 1 = Filth, 2 = Maurice, 3 = Seven, 4 = Coin
     public int riggedResult = 2;
 
+    // Configurable values
+    private ConfigEntry<float> spinDuration;
+    private ConfigEntry<float> minSpinSpeed;
+    private ConfigEntry<float> maxSpinSpeed;
+    private ConfigEntry<int> jackpotPoints;
+    private ConfigEntry<float> kitrDamage;
+    private ConfigEntry<int> filthEnemyDamage;
+    private ConfigEntry<int> coinEnemyDamage;
+    private ConfigEntry<bool> riggedModeConfig;
+
+    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    {
+        spinDuration = Config.Bind<float>(sectionName, "Spin Duration", 0.5f,
+            "How long the slot machine spins for (in seconds)");
+
+        minSpinSpeed = Config.Bind<float>(sectionName, "Min Spin Speed", 1.0f,
+            "Minimum speed multiplier for slot spinning");
+
+        maxSpinSpeed = Config.Bind<float>(sectionName, "Max Spin Speed", 3.0f,
+            "Maximum speed multiplier for slot spinning");
+
+        jackpotPoints = Config.Bind<int>(sectionName, "Jackpot Style Points", 500,
+            "Style points awarded for getting a jackpot");
+
+        kitrDamage = Config.Bind<float>(sectionName, "Loss Damage", 0.5f,
+            "Damage multiplier for loss result");
+
+
+        filthEnemyDamage = Config.Bind<int>(sectionName, "Filth Damage", 15,
+            "Direct enemy damage for Filth result");
+
+
+        coinEnemyDamage = Config.Bind<int>(sectionName, "Coin Damage", 75,
+            "Direct enemy damage for Coin result");
+
+        riggedModeConfig = Config.Bind<bool>(sectionName, "Rigged Mode Enabled", false,
+            "Enable rigged mode where you can control the outcome (Right click to change outcome)");
+
+        riggedMode = riggedModeConfig.Value;
+    }
 
     // Each slot is 72° 
     // Filth = 72
@@ -78,7 +119,7 @@ public class GambleGun : MonoBehaviour
         if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
         {
             riggedResult++;
-            if(riggedResult == 5)
+            if (riggedResult == 5)
             {
                 riggedResult = 0;
             }
@@ -95,12 +136,11 @@ public class GambleGun : MonoBehaviour
         float[] speeds = new float[slots.Length];
         for (int i = 0; i < speeds.Length; i++)
         {
-            speeds[i] = Random.Range(1.0f, 3.0f);
+            speeds[i] = Random.Range(minSpinSpeed.Value, maxSpinSpeed.Value);
         }
 
         float timer = 0;
-        float duration = 0.5f;
-        while (timer < duration)
+        while (timer < spinDuration.Value)
         {
             for (int i = 0; i < slots.Length; i++)
             {
@@ -181,23 +221,23 @@ public class GambleGun : MonoBehaviour
     void Fire()
     {
         int fireMode = getFireMode();
-        if(fireMode == 4)
+        if (fireMode == 4)
         {
             Instantiate(sevenChargeParticle, sevenChargeParticle.transform.parent).SetActive(true);
             return;
         }
         if (anim != null)
             anim.SetTrigger("Fire");
-        
+
         if (fireMode == 0)
             source.PlayOneShot(lossClip);
         else
         {
-            StyleHUD.Instance.AddPoints(500, "<color=#00ffffff>JACKPOT!</color>", gameObject);
+            StyleHUD.Instance.AddPoints(jackpotPoints.Value, "<color=#00ffffff>JACKPOT!</color>", gameObject);
 
-            source.PlayOneShot(winClip); 
+            source.PlayOneShot(winClip);
         }
-            
+
         GameObject projectile = Instantiate(projectilesPerFireMode[fireMode], firePoint.transform.position, firePoint.transform.rotation);
         Vector3 targetPoint;
 
@@ -219,26 +259,26 @@ public class GambleGun : MonoBehaviour
 
         projectile.transform.LookAt(targetPoint, Vector3.up);
 
-        if(projectile.TryGetComponent<RevolverBeam>(out RevolverBeam beam))
+        if (projectile.TryGetComponent<RevolverBeam>(out RevolverBeam beam))
         {
             switch (fireMode)
             {
                 case 5:
                     beam.damage = 1;
-                    beam.enemyDamageOverride = 75;
+                    beam.enemyDamageOverride = coinEnemyDamage.Value;
                     break;
                 case 0:
-                    beam.damage = 0.5f;
+                    beam.damage = kitrDamage.Value;
                     break;
                 case 1:
                     beam.damage = 1;
-                    beam.enemyDamageOverride = 15;
+                    beam.enemyDamageOverride = filthEnemyDamage.Value;
                     break;
             }
         }
-        if(projectile.TryGetComponent<Projectile>(out Projectile proj))
+        if (projectile.TryGetComponent<Projectile>(out Projectile proj))
         {
-            if(proj.explosionEffect != null)
+            if (proj.explosionEffect != null)
             {
                 StartCoroutine(ShaderManager.ApplyShaderToGameObject(proj.explosionEffect));
                 if (proj.explosionEffect.GetComponentInChildren<Explosion>())
