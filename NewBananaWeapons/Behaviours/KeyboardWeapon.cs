@@ -15,14 +15,14 @@ public class KeyboardWeapon : BaseWeapon
     StringBuilder builder = new StringBuilder();
 
     // Configurable values
-    private ConfigEntry<float> slowMotionMultiplier;
-    private ConfigEntry<int> capitalizationPoints;
-    private ConfigEntry<int> punctuationPoints;
-    private ConfigEntry<int> fullSentencePoints;
-    private ConfigEntry<int> multiSentencePointsPerSentence;
-    private ConfigEntry<float> wordFireDelay;
-    private ConfigEntry<float> varietyBonusMultiplier;
-    private ConfigEntry<float> sentenceMultiplierScale;
+    private static ConfigEntry<float> slowMotionMultiplier;
+    private static ConfigEntry<int> capitalizationPoints;
+    private static ConfigEntry<int> punctuationPoints;
+    private static ConfigEntry<int> fullSentencePoints;
+    private static ConfigEntry<int> multiSentencePointsPerSentence;
+    private static ConfigEntry<float> wordFireDelay;
+    private static ConfigEntry<float> varietyBonusMultiplier;
+    private static ConfigEntry<float> sentenceMultiplierScale;
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {

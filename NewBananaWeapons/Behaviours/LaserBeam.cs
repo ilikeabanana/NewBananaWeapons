@@ -14,11 +14,11 @@ public class LaserBeam : BaseWeapon
     float damageDelay;
 
     // Configurable values
-    private ConfigEntry<float> chargeTime;
-    private ConfigEntry<float> laserRadius;
-    private ConfigEntry<float> laserRange;
-    private ConfigEntry<float> damage;
-    private ConfigEntry<float> damageTickRate;
+    private static ConfigEntry<float> chargeTime;
+    private static ConfigEntry<float> laserRadius;
+    private static ConfigEntry<float> laserRange;
+    private static ConfigEntry<float> damage;
+    private static ConfigEntry<float> damageTickRate;
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {
         chargeTime = Config.Bind<float>(sectionName, "Charge Time", 1f,

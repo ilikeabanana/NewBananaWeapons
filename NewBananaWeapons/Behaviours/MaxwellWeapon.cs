@@ -20,8 +20,8 @@ public class MaxwellWeapon : BaseWeapon
     GameObject rage;
 
     // Configurable values
-    private ConfigEntry<float> petCooldown;
-    private ConfigEntry<int> petsForEnrage;
+    private static ConfigEntry<float> petCooldown;
+    private static ConfigEntry<int> petsForEnrage;
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {

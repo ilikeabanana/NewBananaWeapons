@@ -383,16 +383,6 @@ namespace NewBananaWeapons
                         {
                             MonoSingleton<GunControl>.Instance.transform.GetChild(k).gameObject.SetActive(false);
                         }
-                        string sectionName = gameObject.name;
-                        if (gameObject.TryGetComponent<WeaponIcon>(out WeaponIcon wicn))
-                        {
-                            sectionName = wicn.weaponDescriptor.weaponName;
-                        }
-                        if (gameObject.GetComponentInChildren<BaseWeapon>())
-                        {
-                            gameObject.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Instance.Config);
-                        }
-
                         result = gameObject;
                     }
                 }
@@ -404,20 +394,29 @@ namespace NewBananaWeapons
 
             if (cooldowns.Count > 0)
             {
-                // Copy keys to avoid modifying collection while iterating
-                var keys = new List<GameObject>(cooldowns.Keys);
-
-                foreach (var key in keys)
+                if (ULTRAKILL.Cheats.NoWeaponCooldown.NoCooldown)
                 {
-                    cooldowns[key] -= Time.deltaTime;
-
-                    // Optional: remove finished cooldowns
-                    if (cooldowns[key] <= 0f)
-                        cooldowns.Remove(key);
+                    cooldowns.Clear();
                 }
+                else
+                {
+                    // Copy keys to avoid modifying collection while iterating
+                    var keys = new List<GameObject>(cooldowns.Keys);
+
+                    foreach (var key in keys)
+                    {
+                        cooldowns[key] -= Time.deltaTime;
+
+                        // Optional: remove finished cooldowns
+                        if (cooldowns[key] <= 0f)
+                            cooldowns.Remove(key);
+                    }
+                }
+
+
             }
 
-
+            /*
             if (funnySecret != null)
             {
                 if (Input.GetKeyDown(KeyCode.F3))
@@ -470,7 +469,7 @@ namespace NewBananaWeapons
                 mockArm.AddComponent<LoaderArm>();
 
                 AddArm(mockArm);
-            }
+            }*/
 
 
             if (BundleArms == null || BundleArms.Count == 0) return;
@@ -556,15 +555,6 @@ namespace NewBananaWeapons
                         Banana_WeaponsPlugin.Log.LogInfo("Adding... " + addedArms[i].name);
                         GameObject item = UnityEngine.Object.Instantiate(addedArms[i], __instance.transform);
                         __instance.StartCoroutine(ShaderManager.ApplyShaderToGameObject(item));
-                        string sectionName = item.name;
-                        if (item.TryGetComponent<WeaponIcon>(out WeaponIcon wicn))
-                        {
-                            sectionName = wicn.weaponDescriptor.weaponName;
-                        }
-                        if (item.GetComponentInChildren<BaseWeapon>())
-                        {
-                            item.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Instance.Config);
-                        }
                         __instance.spawnedArms.Add(item);
                         __instance.spawnedArmNums.Add(i + 3);
                         /*

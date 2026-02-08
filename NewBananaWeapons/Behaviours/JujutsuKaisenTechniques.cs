@@ -152,14 +152,11 @@ public class JujutsuKaisenTechniques : MonoBehaviour
         }
 
         // PURPLE
+        // PURPLE
         if (chargingPurple)
         {
             purpleCharge.gameObject.SetActive(true);
-            purpleCharge.localScale = Vector3.Lerp(
-                purpleStartScale,
-                purpleStartScale * (maxChargeScale * 2.5f),
-                Time.deltaTime * 10f
-            );
+            purpleCharge.localScale = purpleStartScale * (maxChargeScale * 2.5f); // Direct assignment
 
             // Visual merge
             blueCharge.position = Vector3.Lerp(

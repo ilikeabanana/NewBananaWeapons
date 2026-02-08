@@ -14,13 +14,13 @@ public class TheForceWeapon : BaseWeapon
     GameObject manipulationEffectCurrent = null;
 
     // Configurable values
-    private ConfigEntry<float> distance;
-    private ConfigEntry<float> cooldownOnCrush;
-    private ConfigEntry<float> throwForceMultiplier;
-    private ConfigEntry<float> targetingRange;
-    private ConfigEntry<float> bigEnemyDamage;
-    private ConfigEntry<int> implodeStylePoints;
-    private ConfigEntry<bool> allowImplosionOnBigEnemies;
+    private static ConfigEntry<float> distance;
+    private static ConfigEntry<float> cooldownOnCrush;
+    private static ConfigEntry<float> throwForceMultiplier;
+    private static ConfigEntry<float> targetingRange;
+    private static ConfigEntry<float> bigEnemyDamage;
+    private static ConfigEntry<int> implodeStylePoints;
+    private static ConfigEntry<bool> allowImplosionOnBigEnemies;
 
     float cooldown = 0;
 

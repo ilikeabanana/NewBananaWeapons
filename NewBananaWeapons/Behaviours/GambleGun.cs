@@ -25,14 +25,14 @@ public class GambleGun : BaseWeapon
     public int riggedResult = 2;
 
     // Configurable values
-    private ConfigEntry<float> spinDuration;
-    private ConfigEntry<float> minSpinSpeed;
-    private ConfigEntry<float> maxSpinSpeed;
-    private ConfigEntry<int> jackpotPoints;
-    private ConfigEntry<float> kitrDamage;
-    private ConfigEntry<int> filthEnemyDamage;
-    private ConfigEntry<int> coinEnemyDamage;
-    private ConfigEntry<bool> riggedModeConfig;
+    private static ConfigEntry<float> spinDuration;
+    private static ConfigEntry<float> minSpinSpeed;
+    private static ConfigEntry<float> maxSpinSpeed;
+    private static ConfigEntry<int> jackpotPoints;
+    private static ConfigEntry<float> kitrDamage;
+    private static ConfigEntry<int> filthEnemyDamage;
+    private static ConfigEntry<int> coinEnemyDamage;
+    private static ConfigEntry<bool> riggedModeConfig;
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {
@@ -157,7 +157,7 @@ public class GambleGun : BaseWeapon
 
             float snappedZ;
 
-            if (riggedMode)
+            if (riggedModeConfig.Value)
             {
                 // Force all slots to the rigged result
                 snappedZ = (riggedResult * 72f) % 360f;

@@ -24,13 +24,13 @@ public class OarWeapon : BaseWeapon
     List<EnemyIdentifier> hitEnemies = new List<EnemyIdentifier>();
 
     // Configurable values
-    private ConfigEntry<float> attackRadius;
-    private ConfigEntry<float> forceEnemy;
-    private ConfigEntry<float> forcePlayer;
-    private ConfigEntry<float> damage;
-    private ConfigEntry<float> maxCharge;
-    private ConfigEntry<float> lightningDamageMultiplier;
-    private ConfigEntry<float> cooldownMultiplier;
+    private static ConfigEntry<float> attackRadius;
+    private static ConfigEntry<float> forceEnemy;
+    private static ConfigEntry<float> forcePlayer;
+    private static ConfigEntry<float> damage;
+    private static ConfigEntry<float> maxCharge;
+    private static ConfigEntry<float> lightningDamageMultiplier;
+    private static ConfigEntry<float> cooldownMultiplier;
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {

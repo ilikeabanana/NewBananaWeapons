@@ -17,9 +17,9 @@ public class MetalPipeWeapon : BaseWeapon
     List<EnemyIdentifier> hitEnemies = new List<EnemyIdentifier>();
 
     // Configurable values
-    private ConfigEntry<float> slapRange;
-    private ConfigEntry<float> slapDamage;
-    private ConfigEntry<float> slapForce;
+    private static ConfigEntry<float> slapRange;
+    private static ConfigEntry<float> slapDamage;
+    private static ConfigEntry<float> slapForce;
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {
