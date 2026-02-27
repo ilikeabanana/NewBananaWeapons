@@ -9,7 +9,7 @@ namespace NewBananaWeapons.Behaviours.Non_WeaponBehaviours
         private List<Collider> wallColliders = new List<Collider>();
         private List<int> wallLayers = new List<int>();
         private Collider playerCollider;
-        public float ghostRadius = 3f;
+        public float ghostRadius = 2.5f;
         public float reenableDelay = 0.05f;
         public PortalCollisionFixer partner;
         private bool selfGhosting = false;
@@ -183,7 +183,24 @@ namespace NewBananaWeapons.Behaviours.Non_WeaponBehaviours
                 if (wallColliders[i] == null) continue;
                 Physics.IgnoreCollision(playerCollider, wallColliders[i], ignore);
                 targetWalls[i].layer = ignore ? 0 : wallLayers[i];
-                if (NewMovement.Instance.gc) NewMovement.Instance.gc.enabled = !ignore;
+
+
+
+                if (NewMovement.Instance.gc)
+                {
+                    if (ignore)
+                    {
+                        foreach (var ggc in NewMovement.Instance.gc.instances)
+                        {
+                            ggc.onGround = false;
+                            ggc.touchingGround = false;
+
+                        }
+                    }
+                    
+
+                    NewMovement.Instance.gc.enabled = !ignore;
+                }
                 if (NewMovement.Instance.wc) NewMovement.Instance.wc.enabled = !ignore;
                 var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
                 if (vcb) vcb.enabled = !ignore;

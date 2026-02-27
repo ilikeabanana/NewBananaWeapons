@@ -311,7 +311,7 @@ namespace NewBananaWeapons.Behaviours
             portal1.renderSettings = PortalSideFlags.Enter | PortalSideFlags.Exit | PortalSideFlags.None;
             portal1.useFogEnter = true;
             portal1.useFogExit = true;
-            portal1.canSeePortalLayer = false;
+            portal1.canSeePortalLayer = true;
 
             StartCoroutine(applyFunnies(portal1, fixer1, fixer2));
 
@@ -334,7 +334,7 @@ namespace NewBananaWeapons.Behaviours
                 if (x.travellerType != PortalTravellerType.PLAYER) return;
                 if (fixer2 == null) return;
                 if (fixer2.isOnFloor)
-                    NewMovement.Instance.transform.position += x.travellerVelocity.normalized * 3;
+                    NewMovement.Instance.transform.position += x.travellerVelocity.normalized * 2;
             });
 
             portal1.onExitTravel.AddListener((x, y) =>
@@ -342,7 +342,7 @@ namespace NewBananaWeapons.Behaviours
                 if (x.travellerType != PortalTravellerType.PLAYER) return;
                 if (fixer1 == null) return;
                 if (fixer1.isOnFloor)
-                    NewMovement.Instance.transform.position += x.travellerVelocity.normalized * 3;
+                    NewMovement.Instance.transform.position += x.travellerVelocity.normalized * 2;
             });
         }
     }
