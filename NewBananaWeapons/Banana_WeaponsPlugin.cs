@@ -2,8 +2,6 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using NewBananaWeapons.Behaviours;
-using NewBananaWeapons.Behaviours.Non_WeaponBehaviours;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -519,7 +517,7 @@ namespace NewBananaWeapons
             if (arm == null) return;
 
             addedArms.Add(arm);
-            var fistControl = MonoSingleton<FistControl>.Instance;
+            var fistControl = MonoSingleton<FistControl>.Instance; 
             if (fistControl != null)
             {
                 fistControl.ResetFists();
