@@ -9,31 +9,50 @@ using System.Threading.Tasks;
 using ULTRAKILL.Portal;
 using ULTRAKILL.Portal.Geometry;
 using UnityEngine;
+using ULTRAKILL.Portal.Native;
 
 namespace NewBananaWeapons.Behaviours
 {
     public class PortalGun : BaseWeapon
     {
+        // Portal half-extents: width = 1.25, height = 2.5
+        private static readonly Vector3 PortalSize = new Vector3(1.25f, 2.5f, 0.1f);
+
+        // How many times to try nudging the portal toward the surface center per placement
+        private const int SnapIterations = 12;
+        // How far to nudge per iteration when a corner is invalid (metres)
+        private const float SnapStepSize = 0.12f;
+        // Maximum cumulative snapping distance before we give up
+        private const float MaxSnapDistance = 2.0f;
+
         public override void SetupConfigs(string sectionName, ConfigFile Config)
         {
             base.SetupConfigs(sectionName, Config);
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  Lifecycle
+        // ─────────────────────────────────────────────────────────────────────
 
         void Update()
         {
             PortalAttempt();
         }
+
         GameObject quad2;
         GameObject quad1;
         bool alrSetupPortals;
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  Input handling
+        // ─────────────────────────────────────────────────────────────────────
+
         void PortalAttempt()
         {
             if (CameraController.Instance == null) return;
             if (!GunControl.Instance.activated) return;
-            // Use a local variable to capture the raycast once to avoid 
-            // multiple raycasts in one frame (performance/consistency)
-            RaycastHit hit = aimHit;
+
+            PhysicsCastResult hit = aimHit;
 
             if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame)
             {
@@ -47,18 +66,24 @@ namespace NewBananaWeapons.Behaviours
             }
         }
 
-        void UpdatePortal(ref GameObject portalObj, string name, RaycastHit hit)
+        // ─────────────────────────────────────────────────────────────────────
+        //  Portal placement
+        // ─────────────────────────────────────────────────────────────────────
+
+        void UpdatePortal(ref GameObject portalObj, string name, PhysicsCastResult hit)
         {
-            // 1. Check if the surface is valid (Flat and large enough)
-            Vector3 portalSize = new Vector3(1.25f, 2.5f, 0.1f); // Width, Height, Depth
-            if (!IsSurfaceValid(hit, portalSize))
+            // Compute the correct orientation before we do any snapping so that
+            // floor/ceiling portals already carry the player-relative "up".
+            Quaternion portalRotation = ComputePortalRotation(hit);
+
+            // Try to nudge the portal centre onto a fully-valid patch of surface.
+            if (!TrySnapToSurface(hit, portalRotation, out Vector3 snappedPosition))
             {
-                Debug.Log("Surface invalid: Too small, curved, or near an edge.");
+                Debug.Log("Surface invalid: could not find a large enough flat patch.");
                 return;
             }
 
-            // 2. Check if another portal is already here
-            if (IsSpaceOccupied(hit.point, portalSize, portalObj))
+            if (IsSpaceOccupied(snappedPosition, PortalSize, portalObj))
             {
                 Debug.Log("Surface invalid: Another portal is already here.");
                 return;
@@ -72,93 +97,198 @@ namespace NewBananaWeapons.Behaviours
                 portalObj.SetActive(false);
             }
 
-            // Face AWAY from the wall
-            portalObj.transform.rotation = Quaternion.LookRotation(-hit.normal);
-            // Offset slightly to prevent Z-fighting/clipping
-            portalObj.transform.position = hit.point + hit.normal * 0.05f;
+            portalObj.transform.rotation = portalRotation;
+            // Slight offset along normal to prevent Z-fighting / clipping
+            portalObj.transform.position = snappedPosition + hit.normal * 0.05f;
 
             portalObj.GetOrAddComponent<PortalCollisionFixer>().FixCols();
         }
 
-        private bool IsSurfaceValid(RaycastHit centerHit, Vector3 size)
+        // ─────────────────────────────────────────────────────────────────────
+        //  Rotation helpers
+        // ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Compute the portal's world rotation.
+        /// • Walls  → forward faces away from the wall (standard behaviour).
+        /// • Floor/Ceiling → forward still points away from the surface, but the
+        ///   portal's "up" axis is aligned with the player's horizontal look
+        ///   direction so the portal is always oriented toward the shooter.
+        /// </summary>
+        Quaternion ComputePortalRotation(PhysicsCastResult hit)
         {
-            // We check 4 points around the center hit to ensure they land on the same plane
-            Vector3 upDir = Vector3.up;
-            // Ensure upDir isn't parallel to the normal
-            if (Mathf.Abs(Vector3.Dot(centerHit.normal, Vector3.up)) > 0.9f)
-                upDir = Vector3.forward;
+            Vector3 forward = -hit.normal; // portal faces toward the player
 
-            Vector3 right = Vector3.Cross(centerHit.normal, upDir).normalized;
-            Vector3 up = Vector3.Cross(right, centerHit.normal).normalized;
+            bool isFloorOrCeiling = Mathf.Abs(Vector3.Dot(hit.normal, Vector3.up)) > 0.9f;
 
-            // The 4 corners of the portal to check
-            Vector3[] checkPoints = new Vector3[]
+            if (isFloorOrCeiling)
             {
-        centerHit.point + (right * size.x * 0.5f) + (up * size.y * 0.5f),
-        centerHit.point - (right * size.x * 0.5f) + (up * size.y * 0.5f),
-        centerHit.point + (right * size.x * 0.5f) - (up * size.y * 0.5f),
-        centerHit.point - (right * size.x * 0.5f) - (up * size.y * 0.5f)
-            };
+                // Project the camera's forward direction onto the surface plane so the
+                // portal's "up" matches where the player is looking horizontally.
+                Vector3 camForward = CameraController.Instance.transform.forward;
+                Vector3 projectedUp = Vector3.ProjectOnPlane(camForward, hit.normal).normalized;
 
-            foreach (Vector3 pos in checkPoints)
+                // Guard against a perfectly vertical look (rare but possible).
+                if (projectedUp.sqrMagnitude < 0.001f)
+                    projectedUp = Vector3.ProjectOnPlane(CameraController.Instance.transform.right, hit.normal).normalized;
+
+                return Quaternion.LookRotation(forward, projectedUp);
+            }
+            else
             {
-                // Fire a ray from slightly "outside" the wall back towards the wall
-                Ray ray = new Ray(pos + centerHit.normal * 0.5f, -centerHit.normal);
-                if (Physics.Raycast(ray, out RaycastHit sideHit, 1f, LayerMaskDefaults.Get(LMD.Environment)))
+                // For walls use a stable world-up reference.
+                return Quaternion.LookRotation(forward);
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  Edge snapping
+        // ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Starting from the raw hit point, iteratively slide the portal centre
+        /// along the surface plane until all four corners land on the same flat
+        /// geometry.  Returns false only if no valid position can be found within
+        /// <see cref="MaxSnapDistance"/> of the original hit.
+        /// </summary>
+        bool TrySnapToSurface(PhysicsCastResult hit, Quaternion rotation, out Vector3 result)
+        {
+            // Derive the portal's local right/up axes from the chosen rotation.
+            Vector3 right = rotation * Vector3.right;
+            Vector3 up = rotation * Vector3.up;
+
+            Vector3 centre = hit.point;
+            Vector3 origin = hit.point; // keep for distance budget check
+
+            for (int iter = 0; iter < SnapIterations; iter++)
+            {
+                Vector3 nudge = Vector3.zero;
+                bool allValid = true;
+
+                foreach (Vector3 cornerOffset in CornerOffsets(right, up))
                 {
-                    // If the normal is different, the surface is curved or hit a different object
-                    if (Vector3.Angle(centerHit.normal, sideHit.normal) > 2.0f) return false;
+                    Vector3 cornerWorld = centre + cornerOffset;
+                    CornerStatus status = CheckCorner(cornerWorld, hit.normal);
 
-                    // If the distance is too different, it's floating over a gap
-                    if (Mathf.Abs(sideHit.distance - 0.5f) > 0.1f) return false;
+                    if (status != CornerStatus.Valid)
+                    {
+                        // Push the centre away from the failing corner (i.e. inward).
+                        nudge -= cornerOffset.normalized * SnapStepSize;
+                        allValid = false;
+                    }
                 }
-                else
+
+                if (allValid)
                 {
-                    // Ray missed entirely (the edge of the wall)
-                    return false;
+                    result = centre;
+                    return true;
+                }
+
+                // Move the centre by the aggregate nudge.
+                centre += nudge;
+
+                // Bail out if we have wandered too far from where the player aimed.
+                if (Vector3.Distance(centre, origin) > MaxSnapDistance)
+                    break;
+            }
+
+            // Do one last full check at the final snapped position.
+            bool finalValid = true;
+            foreach (Vector3 cornerOffset in CornerOffsets(right, up))
+            {
+                if (CheckCorner(centre + cornerOffset, hit.normal) != CornerStatus.Valid)
+                {
+                    finalValid = false;
+                    break;
                 }
             }
-            return true;
+
+            result = centre;
+            return finalValid;
         }
+
+        /// <summary>Returns the four corner offsets for a portal of <see cref="PortalSize"/>.</summary>
+        IEnumerable<Vector3> CornerOffsets(Vector3 right, Vector3 up)
+        {
+            float hw = PortalSize.x * 0.5f; // half-width
+            float hh = PortalSize.y * 0.5f; // half-height
+            yield return right * hw + up * hh;
+            yield return -right * hw + up * hh;
+            yield return right * hw - up * hh;
+            yield return -right * hw - up * hh;
+        }
+
+        enum CornerStatus { Valid, EdgeOrGap, CurvedOrDifferentSurface }
+
+        /// <summary>
+        /// Fires a ray from just in front of the wall back toward it to verify
+        /// the corner lands on the same flat surface as the portal centre.
+        /// </summary>
+        CornerStatus CheckCorner(Vector3 cornerWorld, Vector3 surfaceNormal)
+        {
+            Ray ray = new Ray(cornerWorld + surfaceNormal * 0.5f, -surfaceNormal);
+
+            if (!Physics.Raycast(ray, out RaycastHit hit, 1f, LayerMaskDefaults.Get(LMD.Environment)))
+                return CornerStatus.EdgeOrGap; // ray missed → we're over an edge
+
+            // Surface is curved or belongs to a different object if the normal differs.
+            if (Vector3.Angle(surfaceNormal, hit.normal) > 2.0f)
+                return CornerStatus.CurvedOrDifferentSurface;
+
+            // The surface has an unexpected depth offset → gap or protruding geometry.
+            if (Mathf.Abs(hit.distance - 0.5f) > 0.1f)
+                return CornerStatus.CurvedOrDifferentSurface;
+
+            return CornerStatus.Valid;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  Overlap check
+        // ─────────────────────────────────────────────────────────────────────
 
         private bool IsSpaceOccupied(Vector3 position, Vector3 size, GameObject currentPortal)
         {
-            // Look for any existing Portals in the area
             Collider[] colliders = Physics.OverlapBox(position, size * 0.5f);
             foreach (var col in colliders)
             {
-                // Ignore if the collider belongs to the portal we are currently moving
-                if (currentPortal != null && (col.gameObject == currentPortal || col.transform.IsChildOf(currentPortal.transform)))
+                if (currentPortal != null &&
+                    (col.gameObject == currentPortal || col.transform.IsChildOf(currentPortal.transform)))
                     continue;
 
-                // If we hit something with a Portal component or PortalIdentifier, it's occupied
-                if (col.GetComponentInParent<Portal>() != null || col.GetComponentInParent<PortalIdentifier>() != null)
+                if (col.GetComponentInParent<Portal>() != null ||
+                    col.GetComponentInParent<PortalIdentifier>() != null)
                     return true;
             }
             return false;
         }
-        RaycastHit aimHit
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  Aim raycast
+        // ─────────────────────────────────────────────────────────────────────
+
+        PhysicsCastResult aimHit
         {
             get
             {
                 Transform camTrans = CameraController.Instance.transform;
-                // Declare it once here
-                RaycastHit hit;
+                PhysicsCastResult hit;
 
-                if (Physics.Raycast(camTrans.position, camTrans.forward, out hit, 100, LayerMaskDefaults.Get(LMD.Environment)))
+                if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, out hit, 100,
+                        LayerMaskDefaults.Get(LMD.Environment)))
                 {
                     return hit;
                 }
-                else
-                {
-                    // Just assign to the existing variable, don't re-declare it
-                    hit = new RaycastHit();
-                    hit.point = camTrans.position + (camTrans.forward * 100); // Fixed: point should be relative to cam position
-                    hit.normal = -camTrans.forward;
-                    return hit;
-                }
+
+                hit = new PhysicsCastResult();
+                hit.point = camTrans.position + camTrans.forward * 100;
+                hit.normal = -camTrans.forward;
+                return hit;
             }
         }
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  Portal initialisation
+        // ─────────────────────────────────────────────────────────────────────
 
         public void SetupPortals()
         {
@@ -187,7 +317,7 @@ namespace NewBananaWeapons.Behaviours
 
             PortalIdentifier portalIdent = quad2.AddComponent<PortalIdentifier>();
             portalIdent.isTraversable = true;
-            
+
             quad1.SetActive(true);
             quad2.SetActive(true);
         }
@@ -198,24 +328,21 @@ namespace NewBananaWeapons.Behaviours
 
             if (portal1.onEntryTravel == null) portal1.onEntryTravel = new UnityEventPortalTravel();
             if (portal1.onExitTravel == null) portal1.onExitTravel = new UnityEventPortalTravel();
-            
+
             portal1.onEntryTravel.AddListener((x, y) =>
             {
+                if (x.travellerType != PortalTravellerType.PLAYER) return;
                 if (fixer2 == null) return;
                 if (fixer2.isOnFloor)
-                {
-                    Vector3 offset = x.travellerVelocity.normalized * 3;
-                    NewMovement.Instance.transform.position += offset;
-                }
+                    NewMovement.Instance.transform.position += x.travellerVelocity.normalized * 3;
             });
+
             portal1.onExitTravel.AddListener((x, y) =>
             {
+                if (x.travellerType != PortalTravellerType.PLAYER) return;
                 if (fixer1 == null) return;
                 if (fixer1.isOnFloor)
-                {
-                    Vector3 offset = x.travellerVelocity.normalized * 3;
-                    NewMovement.Instance.transform.position += offset;
-                }
+                    NewMovement.Instance.transform.position += x.travellerVelocity.normalized * 3;
             });
         }
     }

@@ -15,8 +15,11 @@ namespace NewBananaWeapons.Behaviours.Non_WeaponBehaviours
         private bool selfGhosting = false;
         private bool partnerForced = false;
         private Coroutine reenableRoutine;
-        public bool isGhosting => selfGhosting || partnerForced;
 
+        // Tracks physics objects currently ghosting through this portal
+        private List<Collider> ghostedPhysicsColliders = new List<Collider>();
+
+        public bool isGhosting => selfGhosting || partnerForced;
 
         public bool isOnFloor
         {
@@ -34,7 +37,7 @@ namespace NewBananaWeapons.Behaviours.Non_WeaponBehaviours
 
         public void FixCols()
         {
-            Vector3 inflatedSize = (transform.localScale / 2) + Vector3.one * 0.3f; // inflate uniformly
+            Vector3 inflatedSize = (transform.localScale / 2) + Vector3.one * 0.3f;
 
             Collider[] walls = Physics.OverlapBox(
                 transform.position,
@@ -72,20 +75,73 @@ namespace NewBananaWeapons.Behaviours.Non_WeaponBehaviours
 
         void Update()
         {
-            if (wallColliders.Count == 0 || playerCollider == null) return;
+            if (wallColliders.Count == 0) return;
 
-            float distance = Vector3.Distance(
-                transform.position,
-                playerCollider.bounds.ClosestPoint(transform.position));
+            // --- Player ghosting ---
+            if (playerCollider != null)
+            {
+                float distance = Vector3.Distance(
+                    transform.position,
+                    playerCollider.bounds.ClosestPoint(transform.position));
 
-            bool shouldSelfGhost = distance < ghostRadius;
-            if (shouldSelfGhost == selfGhosting) return;
+                bool shouldSelfGhost = distance < ghostRadius;
+                if (shouldSelfGhost != selfGhosting)
+                {
+                    selfGhosting = shouldSelfGhost;
+                    HandleCollisionChange();
 
-            selfGhosting = shouldSelfGhost;
-            HandleCollisionChange();
+                    if (partner != null)
+                        partner.SetPartnerForced(selfGhosting);
+                }
+            }
 
-            if (partner != null)
-                partner.SetPartnerForced(selfGhosting);
+            // --- Physics object ghosting ---
+            UpdatePhysicsObjectGhosting();
+        }
+
+        private void UpdatePhysicsObjectGhosting()
+        {
+            // Find all rigidbodies within ghostRadius
+            Collider[] nearby = Physics.OverlapSphere(transform.position, ghostRadius);
+            var newGhosted = new List<Collider>();
+
+            foreach (Collider col in nearby)
+            {
+                // Skip the player, portal's own colliders, and non-rigidbody objects
+                if (col == playerCollider) continue;
+                if (col.GetComponent<Rigidbody>() == null && col.GetComponentInParent<Rigidbody>() == null) continue;
+                if (col.transform.IsChildOf(transform)) continue;
+
+                newGhosted.Add(col);
+
+                // If not already ghosted, apply ignore
+                if (!ghostedPhysicsColliders.Contains(col))
+                {
+                    foreach (Collider wall in wallColliders)
+                    {
+                        if (wall != null)
+                            Physics.IgnoreCollision(col, wall, true);
+                    }
+                    Banana_WeaponsPlugin.Log.LogInfo($"Physics object {col.gameObject.name} is now GHOST through portal wall.");
+                }
+            }
+
+            // Re-enable collision for objects that left the radius
+            foreach (Collider col in ghostedPhysicsColliders)
+            {
+                if (col == null) continue;
+                if (!newGhosted.Contains(col))
+                {
+                    foreach (Collider wall in wallColliders)
+                    {
+                        if (wall != null)
+                            Physics.IgnoreCollision(col, wall, false);
+                    }
+                    Banana_WeaponsPlugin.Log.LogInfo($"Physics object {col.gameObject.name} is now SOLID against portal wall.");
+                }
+            }
+
+            ghostedPhysicsColliders = newGhosted;
         }
 
         public void SetPartnerForced(bool forced)
@@ -138,12 +194,27 @@ namespace NewBananaWeapons.Behaviours.Non_WeaponBehaviours
 
         void OnDestroy()
         {
-            if (playerCollider == null) return;
-            for (int i = 0; i < wallColliders.Count; i++)
+            // Restore player collision
+            if (playerCollider != null)
             {
-                if (wallColliders[i] != null)
-                    Physics.IgnoreCollision(playerCollider, wallColliders[i], false);
+                for (int i = 0; i < wallColliders.Count; i++)
+                {
+                    if (wallColliders[i] != null)
+                        Physics.IgnoreCollision(playerCollider, wallColliders[i], false);
+                }
             }
+
+            // Restore physics object collisions
+            foreach (Collider col in ghostedPhysicsColliders)
+            {
+                if (col == null) continue;
+                foreach (Collider wall in wallColliders)
+                {
+                    if (wall != null)
+                        Physics.IgnoreCollision(col, wall, false);
+                }
+            }
+            ghostedPhysicsColliders.Clear();
         }
     }
 }
