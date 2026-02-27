@@ -2,10 +2,14 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using NewBananaWeapons.Behaviours;
+using NewBananaWeapons.Behaviours.Non_WeaponBehaviours;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ULTRAKILL.Portal;
+using ULTRAKILL.Portal.Geometry;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
@@ -154,12 +158,18 @@ namespace NewBananaWeapons
                             {
                                 sectionName = wicn.weaponDescriptor.weaponName;
                             }
-
-                            WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true));
+                            string weaponDescrip = "Enables the weapon";
+                            
                             WeaponsSlots.Add(asset, Config.Bind<int>(sectionName, "Slot", 6, "1 is minimum, 6 is max"));
                             if (asset.GetComponentInChildren<BaseWeapon>())
                             {
+                                weaponDescrip = asset.GetComponentInChildren<BaseWeapon>().GetWeaponDescription();
+                                WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true, weaponDescrip));
                                 asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Config);
+                            }
+                            else
+                            {
+                                WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true, weaponDescrip));
                             }
                         }
                         BundleWeapons.AddRange(loadedAssets);
@@ -354,6 +364,12 @@ namespace NewBananaWeapons
                 else
                 {
                     GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(original);
+
+                    if(gameObject.TryGetComponent<Collider>(out Collider col))
+                    {
+                        Destroy(col);
+                    }
+
                     bool flag5 = gameObject == null;
                     bool flag6 = flag5;
                     if (flag6)
@@ -416,7 +432,7 @@ namespace NewBananaWeapons
 
             }
 
-            /*
+            
             if (funnySecret != null)
             {
                 if (Input.GetKeyDown(KeyCode.F3))
@@ -444,21 +460,12 @@ namespace NewBananaWeapons
 
             if (Input.GetKeyDown(KeyCode.Insert))
             {
-                GameObject mockgunjjk = AddMockGun(PrimitiveType.Capsule);
-                mockgunjjk.AddComponent<JujutsuKaisenTechniques>();
-                GameObject mockgunlazer = AddMockGun(PrimitiveType.Cube);
-                mockgunlazer.AddComponent<LaserBeam>();
+                GameObject portalGun = AddMockGun(PrimitiveType.Cube);
+                portalGun.AddComponent<PortalGun>();
 
-                MakeGun(5, mockgunjjk);
-                GameObject mockgunNuke = AddMockGun(PrimitiveType.Sphere);
-                mockgunNuke.AddComponent<NukeWeapon>();
+                MakeGun(5, portalGun);
 
-                MakeGun(5, mockgunNuke);
-                MakeGun(5, mockgunlazer);
-
-                Destroy(mockgunjjk);
-                Destroy(mockgunlazer);
-                Destroy(mockgunNuke);
+                Destroy(portalGun);
             }
 
             if (Input.GetKeyDown(KeyCode.End))
@@ -469,8 +476,7 @@ namespace NewBananaWeapons
                 mockArm.AddComponent<LoaderArm>();
 
                 AddArm(mockArm);
-            }*/
-
+            }
 
             if (BundleArms == null || BundleArms.Count == 0) return;
             foreach (GameObject obj in BundleArms)
@@ -491,6 +497,10 @@ namespace NewBananaWeapons
                 }
             }
         }
+
+
+        
+
         GameObject AddMockGun(PrimitiveType primitive)
         {
             GameObject mockGun = GameObject.CreatePrimitive(primitive);

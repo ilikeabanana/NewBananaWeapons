@@ -9,4 +9,8 @@ public abstract class BaseWeapon : MonoBehaviour
     {
 
     }
+    public virtual string GetWeaponDescription()
+    {
+        return string.Empty;
+    }
 }

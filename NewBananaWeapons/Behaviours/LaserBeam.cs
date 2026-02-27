@@ -58,10 +58,14 @@ public class LaserBeam : BaseWeapon
             if (charging > chargeTime.Value)
             {
                 chargeParticle.SetActive(false);
-                if (Physics.SphereCast(cam.GetDefaultPos(), laserRadius.Value,
-                    cam.transform.forward, out RaycastHit hit, laserRange.Value, LayerMaskDefaults.Get(LMD.EnemiesAndEnvironment)))
+                Vector3 outDir;
+                PortalTraversalV2[] portalTraversals;
+                PhysicsCastResult hitResult;
+                if (PortalPhysicsV2.SphereCast(cam.GetDefaultPos(), cam.transform.forward, laserRange.Value,
+                    laserRadius.Value, LayerMaskDefaults.Get(LMD.EnemiesAndEnvironment),
+                    out hitResult, out portalTraversals, out outDir, true, QueryTriggerInteraction.UseGlobal))
                 {
-                    if (hit.collider.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
+                    if (hitResult.collider.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
                     {
                         if (damageDelay <= 0)
                         {
@@ -69,13 +73,10 @@ public class LaserBeam : BaseWeapon
                             eidd.eid.SimpleDamage(damage.Value);
                             damageDelay = damageTickRate.Value;
                         }
-
-
                     }
-
                     line.positionCount = 2;
                     line.SetPosition(0, cam.GetDefaultPos() + Vector3.down);
-                    line.SetPosition(1, hit.point);
+                    line.SetPosition(1, hitResult.point);
                 }
                 else
                 {

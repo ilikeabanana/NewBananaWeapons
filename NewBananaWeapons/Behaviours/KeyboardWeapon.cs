@@ -72,8 +72,8 @@ public class KeyboardWeapon : BaseWeapon
         NewMovement.Instance.enabled = false;
         GunControl.Instance.enabled = false;
         PlayerUtilities.Instance.NoFist();
-        NewMovement.Instance.movementDirection = Vector3.zero;
-        NewMovement.Instance.movementDirection2 = Vector3.zero;
+        //NewMovement.Instance.movementDirection = Vector3.zero;
+        //NewMovement.Instance.movementDirection2 = Vector3.zero;
         TimeController.Instance.timeScaleModifier = slowMotionMultiplier.Value;
         TimeController.instance.RestoreTime();
     }

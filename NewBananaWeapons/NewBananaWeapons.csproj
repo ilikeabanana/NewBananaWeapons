@@ -8,14 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ArmIcons\holypeak.jpg" />
+    <None Remove="ArmIcons\Loader_Charged_GauntletIcon.png" />
     <None Remove="Bundles\arms" />
+    <None Remove="Bundles\dttalk" />
     <None Remove="Bundles\funnysecret" />
     <None Remove="Bundles\weapons" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="ArmIcons\FuckYouArm.png" />
+    <EmbeddedResource Include="ArmIcons\Loader_Charged_GauntletIcon.png" />
     <EmbeddedResource Include="Bundles\arms" />
+    <EmbeddedResource Include="Bundles\dttalk" />
     <EmbeddedResource Include="Bundles\funnysecret" />
     <EmbeddedResource Include="Bundles\weapons" />
   </ItemGroup>
