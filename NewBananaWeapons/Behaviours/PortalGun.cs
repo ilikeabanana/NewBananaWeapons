@@ -25,19 +25,23 @@ public class PortalGun : BaseWeapon
 
     Animator anim;
 
+    static ConfigEntry<bool> changeGravity;
+
     void Awake()
     {
         anim = GetComponent<Animator>();
+        lr = gameObject.GetOrAddComponent<LineRenderer>();
+        lr.positionCount = 0;
     }
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {
+
+        changeGravity = Config.Bind<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
+
         base.SetupConfigs(sectionName, Config);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Lifecycle
-    // ─────────────────────────────────────────────────────────────────────
 
     void Update()
     {
@@ -45,37 +49,43 @@ public class PortalGun : BaseWeapon
     }
 
     GameObject quad2;
+    GameObject quad2Wall;
     GameObject quad1;
+    GameObject quad1Wall;
     bool alrSetupPortals;
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Input handling
-    // ─────────────────────────────────────────────────────────────────────
+
+    LineRenderer lr;
 
     void PortalAttempt()
     {
         if (CameraController.Instance == null) return;
         if (!GunControl.Instance.activated) return;
 
-        PhysicsCastResult hit = aimHit;
+        KeyValuePair<PhysicsCastResult, PortalTraversalV2[]> hit = aimHit;
 
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame)
         {
+            lr.positionCount = 2;
+            lr.SetPosition(0, CameraController.Instance.transform.position);
+            lr.SetPosition(0, hit.Key.point);
+            PortalUtils.GenerateLineRendererSegments(this, lr, hit.Value);
+
             anim.SetTrigger("BlueShot");
-            UpdatePortal(ref quad1, "Portal_Entry", hit);
+            UpdatePortal(ref quad1, "Portal_Entry", hit.Key);
             if (quad2 != null && !alrSetupPortals) SetupPortals();
         }
         else if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
         {
+            lr.positionCount = 2;
+            lr.SetPosition(0, CameraController.Instance.transform.position);
+            lr.SetPosition(0, hit.Key.point);
+            PortalUtils.GenerateLineRendererSegments(this, lr, hit.Value);
             anim.SetTrigger("OrangeShot");
-            UpdatePortal(ref quad2, "Portal_Exit", hit);
+            UpdatePortal(ref quad2, "Portal_Exit", hit.Key);
             if (quad1 != null && !alrSetupPortals) SetupPortals();
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────
-    //  Portal placement
-    // ─────────────────────────────────────────────────────────────────────
 
     void UpdatePortal(ref GameObject portalObj, string name, PhysicsCastResult hit)
     {
@@ -108,20 +118,12 @@ public class PortalGun : BaseWeapon
         // Slight offset along normal to prevent Z-fighting / clipping
         portalObj.transform.position = snappedPosition + hit.normal * 0.05f;
 
-        portalObj.GetOrAddComponent<PortalCollisionFixer>().FixCols();
+        PortalCollisionFixer fixer = portalObj.GetOrAddComponent<PortalCollisionFixer>();
+        fixer.placedOnWall = hit.collider.gameObject;
+        fixer.FixCols();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Rotation helpers
-    // ─────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Compute the portal's world rotation.
-    /// • Walls  → forward faces away from the wall (standard behaviour).
-    /// • Floor/Ceiling → forward still points away from the surface, but the
-    ///   portal's "up" axis is aligned with the player's horizontal look
-    ///   direction so the portal is always oriented toward the shooter.
-    /// </summary>
+    #region epic portal placement calculations
     Quaternion ComputePortalRotation(PhysicsCastResult hit)
     {
         Vector3 forward = -hit.normal; // portal faces toward the player
@@ -148,16 +150,6 @@ public class PortalGun : BaseWeapon
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Edge snapping
-    // ─────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Starting from the raw hit point, iteratively slide the portal centre
-    /// along the surface plane until all four corners land on the same flat
-    /// geometry.  Returns false only if no valid position can be found within
-    /// <see cref="MaxSnapDistance"/> of the original hit.
-    /// </summary>
     bool TrySnapToSurface(PhysicsCastResult hit, Quaternion rotation, out Vector3 result)
     {
         // Derive the portal's local right/up axes from the chosen rotation.
@@ -227,10 +219,6 @@ public class PortalGun : BaseWeapon
 
     enum CornerStatus { Valid, EdgeOrGap, CurvedOrDifferentSurface }
 
-    /// <summary>
-    /// Fires a ray from just in front of the wall back toward it to verify
-    /// the corner lands on the same flat surface as the portal centre.
-    /// </summary>
     CornerStatus CheckCorner(Vector3 cornerWorld, Vector3 surfaceNormal)
     {
         Ray ray = new Ray(cornerWorld + surfaceNormal * 0.5f, -surfaceNormal);
@@ -249,9 +237,6 @@ public class PortalGun : BaseWeapon
         return CornerStatus.Valid;
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Overlap check
-    // ─────────────────────────────────────────────────────────────────────
 
     private bool IsSpaceOccupied(Vector3 position, Vector3 size, GameObject currentPortal)
     {
@@ -268,34 +253,29 @@ public class PortalGun : BaseWeapon
         }
         return false;
     }
+    #endregion
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Aim raycast
-    // ─────────────────────────────────────────────────────────────────────
-
-    PhysicsCastResult aimHit
+    KeyValuePair<PhysicsCastResult, PortalTraversalV2[]> aimHit
     {
         get
         {
             Transform camTrans = CameraController.Instance.transform;
             PhysicsCastResult hit;
+            PortalTraversalV2[] array;
+            Vector3 endpoint;
 
-            if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, out hit, 100,
-                    LayerMaskDefaults.Get(LMD.Environment)))
+            if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, 100, LayerMaskDefaults.Get(LMD.Environment), out hit,
+                out array, out endpoint))
             {
-                return hit;
+                return new KeyValuePair<PhysicsCastResult, PortalTraversalV2[]>(hit, array);
             }
 
             hit = new PhysicsCastResult();
             hit.point = camTrans.position + camTrans.forward * 100;
             hit.normal = -camTrans.forward;
-            return hit;
+            return new KeyValuePair<PhysicsCastResult, PortalTraversalV2[]>(hit, new PortalTraversalV2[0]);
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────
-    //  Portal initialisation
-    // ─────────────────────────────────────────────────────────────────────
 
     public void SetupPortals()
     {
@@ -319,6 +299,8 @@ public class PortalGun : BaseWeapon
         portal1.useFogEnter = true;
         portal1.useFogExit = true;
         portal1.canSeePortalLayer = true;
+        portal1.usePerceivedGravityOnEnter = changeGravity.Value;
+        portal1.usePerceivedGravityOnExit = changeGravity.Value;
 
         StartCoroutine(applyFunnies(portal1, fixer1, fixer2));
 

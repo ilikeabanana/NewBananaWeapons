@@ -7,6 +7,7 @@ public class PortalCollisionFixer : MonoBehaviour
 {
     private List<GameObject> targetWalls = new List<GameObject>();
     private List<Collider> wallColliders = new List<Collider>();
+    public GameObject placedOnWall;
     private List<int> wallLayers = new List<int>();
     private Collider playerCollider;
     public float ghostRadius = 2.5f;
@@ -25,12 +26,8 @@ public class PortalCollisionFixer : MonoBehaviour
     {
         get
         {
-            if (targetWalls == null) return false;
-            if (targetWalls.Count == 0) return false;
-            foreach (var wall in targetWalls)
-            {
-                if (wall.tag == "Floor") return true;
-            }
+            if (placedOnWall == null) return false;
+            if (placedOnWall.tag == "Floor") return true;
             return false;
         }
     }
@@ -148,6 +145,7 @@ public class PortalCollisionFixer : MonoBehaviour
     {
         if (partnerForced == forced) return;
         partnerForced = forced;
+
         HandleCollisionChange();
     }
 
@@ -182,28 +180,29 @@ public class PortalCollisionFixer : MonoBehaviour
         {
             if (wallColliders[i] == null) continue;
             Physics.IgnoreCollision(playerCollider, wallColliders[i], ignore);
-            targetWalls[i].layer = ignore ? 0 : wallLayers[i];
-
-
-
-            if (NewMovement.Instance.gc)
+            if (isOnFloor)
             {
-                if (ignore)
+                targetWalls[i].layer = ignore ? 0 : wallLayers[i];
+
+                if (NewMovement.Instance.gc)
                 {
-                    foreach (var ggc in NewMovement.Instance.gc.instances)
+                    if (ignore)
                     {
-                        ggc.onGround = false;
-                        ggc.touchingGround = false;
+                        foreach (var ggc in NewMovement.Instance.gc.instances)
+                        {
+                            ggc.onGround = false;
+                            ggc.touchingGround = false;
 
+                        }
                     }
+
+
+                    NewMovement.Instance.gc.enabled = !ignore;
                 }
-
-
-                NewMovement.Instance.gc.enabled = !ignore;
+                if (NewMovement.Instance.wc) NewMovement.Instance.wc.enabled = !ignore;
+                var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
+                if (vcb) vcb.enabled = !ignore;
             }
-            if (NewMovement.Instance.wc) NewMovement.Instance.wc.enabled = !ignore;
-            var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
-            if (vcb) vcb.enabled = !ignore;
 
             Banana_WeaponsPlugin.Log.LogInfo($"Wall {targetWalls[i].name} is now {status} for Player.");
         }
