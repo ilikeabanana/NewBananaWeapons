@@ -36,11 +36,35 @@ public class RobloxWeapon : MonoBehaviour
 
     }
 
+    Quaternion lockedWorldRotation;
+
+    void Awake()
+    {
+        
+    }
+
+    void OnEnable()
+    {
+        Banana_WeaponsPlugin.Log.LogInfo($"Current rotation: {transform.localRotation.eulerAngles.ToString()}");
+    }
+
+    void LateUpdate()
+    { 
+        Vector3 rot = transform.eulerAngles;
+        rot.x = 0f;
+        transform.eulerAngles = rot;
+
+        transform.localRotation = Quaternion.Euler(transform.localRotation.eulerAngles.x, 266.60f, 0.00f);
+    }
+
+
+
     void Update()
     {
+        /*
         Vector3 worldRot = transform.eulerAngles;
         worldRot.x = 0f; // lock world X axis
-        transform.eulerAngles = worldRot;
+        transform.eulerAngles = worldRot;*/
 
         if (!GunControl.Instance.activated)
             return;

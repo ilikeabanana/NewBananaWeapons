@@ -17,10 +17,17 @@ public class PortalCollisionFixer : MonoBehaviour
     private bool partnerForced = false;
     private Coroutine reenableRoutine;
 
+
+
+
     // Tracks physics objects currently ghosting through this portal
     private List<Collider> ghostedPhysicsColliders = new List<Collider>();
 
     public bool isGhosting => selfGhosting || partnerForced;
+
+
+
+
 
     public bool isOnFloor
     {
@@ -81,7 +88,7 @@ public class PortalCollisionFixer : MonoBehaviour
                 transform.position,
                 playerCollider.bounds.ClosestPoint(transform.position));
 
-            bool shouldSelfGhost = distance < ghostRadius;
+            bool shouldSelfGhost = distance < ghostRadius * PortalGun.sizeMult.Value;
             if (shouldSelfGhost != selfGhosting)
             {
                 selfGhosting = shouldSelfGhost;
@@ -99,7 +106,7 @@ public class PortalCollisionFixer : MonoBehaviour
     private void UpdatePhysicsObjectGhosting()
     {
         // Find all rigidbodies within ghostRadius
-        Collider[] nearby = Physics.OverlapSphere(transform.position, ghostRadius);
+        Collider[] nearby = Physics.OverlapSphere(transform.position, ghostRadius * PortalGun.sizeMult.Value);
         var newGhosted = new List<Collider>();
 
         foreach (Collider col in nearby)
@@ -180,25 +187,23 @@ public class PortalCollisionFixer : MonoBehaviour
         {
             if (wallColliders[i] == null) continue;
             Physics.IgnoreCollision(playerCollider, wallColliders[i], ignore);
+
             if (isOnFloor)
             {
                 targetWalls[i].layer = ignore ? 0 : wallLayers[i];
 
                 if (NewMovement.Instance.gc)
                 {
-                    if (ignore)
-                    {
-                        foreach (var ggc in NewMovement.Instance.gc.instances)
-                        {
-                            ggc.onGround = false;
-                            ggc.touchingGround = false;
-
-                        }
-                    }
-
-
                     NewMovement.Instance.gc.enabled = !ignore;
+
+                    // Reset ground state in BOTH directions - stale 'true' can persist across enable/disable
+                    foreach (var ggc in NewMovement.Instance.gc.instances)
+                    {
+                        ggc.onGround = false;
+                        ggc.touchingGround = false;
+                    }
                 }
+
                 if (NewMovement.Instance.wc) NewMovement.Instance.wc.enabled = !ignore;
                 var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
                 if (vcb) vcb.enabled = !ignore;

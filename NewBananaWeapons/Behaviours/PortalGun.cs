@@ -26,18 +26,18 @@ public class PortalGun : BaseWeapon
     Animator anim;
 
     static ConfigEntry<bool> changeGravity;
+    public static ConfigEntry<float> sizeMult;
 
     void Awake()
     {
         anim = GetComponent<Animator>();
-        lr = gameObject.GetOrAddComponent<LineRenderer>();
-        lr.positionCount = 0;
     }
 
     public override void SetupConfigs(string sectionName, ConfigFile Config)
     {
 
         changeGravity = Config.Bind<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
+        sizeMult = Config.Bind<float>(sectionName, "Size Mult", 1, "Change how big a portal is (requires level restart)");
 
         base.SetupConfigs(sectionName, Config);
     }
@@ -54,9 +54,6 @@ public class PortalGun : BaseWeapon
     GameObject quad1Wall;
     bool alrSetupPortals;
 
-
-    LineRenderer lr;
-
     void PortalAttempt()
     {
         if (CameraController.Instance == null) return;
@@ -66,10 +63,6 @@ public class PortalGun : BaseWeapon
 
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame)
         {
-            lr.positionCount = 2;
-            lr.SetPosition(0, CameraController.Instance.transform.position);
-            lr.SetPosition(0, hit.Key.point);
-            PortalUtils.GenerateLineRendererSegments(this, lr, hit.Value);
 
             anim.SetTrigger("BlueShot");
             UpdatePortal(ref quad1, "Portal_Entry", hit.Key);
@@ -77,10 +70,7 @@ public class PortalGun : BaseWeapon
         }
         else if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
         {
-            lr.positionCount = 2;
-            lr.SetPosition(0, CameraController.Instance.transform.position);
-            lr.SetPosition(0, hit.Key.point);
-            PortalUtils.GenerateLineRendererSegments(this, lr, hit.Value);
+
             anim.SetTrigger("OrangeShot");
             UpdatePortal(ref quad2, "Portal_Exit", hit.Key);
             if (quad1 != null && !alrSetupPortals) SetupPortals();
@@ -110,7 +100,7 @@ public class PortalGun : BaseWeapon
         {
             portalObj = new GameObject(name);
             portalObj.AddComponent<BoxCollider>().isTrigger = true;
-            portalObj.transform.localScale = new Vector3(1.25f, 2.5f, 1f);
+            portalObj.transform.localScale = new Vector3(1.25f * sizeMult.Value, 2.5f * sizeMult.Value, 1f * sizeMult.Value);
             portalObj.SetActive(false);
         }
 
@@ -287,7 +277,7 @@ public class PortalGun : BaseWeapon
         fixer2.partner = fixer1;
 
         Portal portal1 = quad1.AddComponent<Portal>();
-        portal1.shape = new PlaneShape { width = 3.75f, height = 7.5f };
+        portal1.shape = new PlaneShape { width = 3.75f * sizeMult.Value, height = 7.5f * sizeMult.Value };
         portal1.entry = quad2.transform;
         portal1.exit = quad1.transform;
         portal1.supportInfiniteRecursion = true;
