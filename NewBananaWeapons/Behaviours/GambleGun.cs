@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System.Collections;
 using UnityEngine;
 
@@ -25,41 +24,41 @@ public class GambleGun : BaseWeapon
     public int riggedResult = 2;
 
     // Configurable values
-    private static ConfigEntry<float> spinDuration;
-    private static ConfigEntry<float> minSpinSpeed;
-    private static ConfigEntry<float> maxSpinSpeed;
-    private static ConfigEntry<int> jackpotPoints;
-    private static ConfigEntry<float> kitrDamage;
-    private static ConfigEntry<int> filthEnemyDamage;
-    private static ConfigEntry<int> coinEnemyDamage;
-    private static ConfigEntry<bool> riggedModeConfig;
+    private static ConfigVar<float> spinDuration;
+    private static ConfigVar<float> minSpinSpeed;
+    private static ConfigVar<float> maxSpinSpeed;
+    private static ConfigVar<int> jackpotPoints;
+    private static ConfigVar<float> kitrDamage;
+    private static ConfigVar<int> filthEnemyDamage;
+    private static ConfigVar<int> coinEnemyDamage;
+    private static ConfigVar<bool> riggedModeConfig;
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
-        spinDuration = Config.Bind<float>(sectionName, "Spin Duration", 0.5f,
+        spinDuration = new ConfigVar<float>(sectionName, "Spin Duration", 0.5f,
             "How long the slot machine spins for (in seconds)");
 
-        minSpinSpeed = Config.Bind<float>(sectionName, "Min Spin Speed", 1.0f,
+        minSpinSpeed = new ConfigVar<float>(sectionName, "Min Spin Speed", 1.0f,
             "Minimum speed multiplier for slot spinning");
 
-        maxSpinSpeed = Config.Bind<float>(sectionName, "Max Spin Speed", 3.0f,
+        maxSpinSpeed = new ConfigVar<float>(sectionName, "Max Spin Speed", 3.0f,
             "Maximum speed multiplier for slot spinning");
 
-        jackpotPoints = Config.Bind<int>(sectionName, "Jackpot Style Points", 500,
+        jackpotPoints = new ConfigVar<int>(sectionName, "Jackpot Style Points", 500,
             "Style points awarded for getting a jackpot");
 
-        kitrDamage = Config.Bind<float>(sectionName, "Loss Damage", 0.5f,
+        kitrDamage = new ConfigVar<float>(sectionName, "Loss Damage", 0.5f,
             "Damage multiplier for loss result");
 
 
-        filthEnemyDamage = Config.Bind<int>(sectionName, "Filth Damage", 15,
+        filthEnemyDamage = new ConfigVar<int>(sectionName, "Filth Damage", 15,
             "Direct enemy damage for Filth result");
 
 
-        coinEnemyDamage = Config.Bind<int>(sectionName, "Coin Damage", 75,
+        coinEnemyDamage = new ConfigVar<int>(sectionName, "Coin Damage", 75,
             "Direct enemy damage for Coin result");
 
-        riggedModeConfig = Config.Bind<bool>(sectionName, "Rigged Mode Enabled", false,
+        riggedModeConfig = new ConfigVar<bool>(sectionName, "Rigged Mode Enabled", false,
             "Enable rigged mode where you can control the outcome (Right click to change outcome)");
 
         riggedMode = riggedModeConfig.Value;

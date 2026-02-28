@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
@@ -25,21 +24,19 @@ public class PortalGun : BaseWeapon
 
     Animator anim;
 
-    static ConfigEntry<bool> changeGravity;
-    public static ConfigEntry<float> sizeMult;
+    static ConfigVar<bool> changeGravity;
+    public static ConfigVar<float> sizeMult;
 
     void Awake()
     {
         anim = GetComponent<Animator>();
     }
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
 
-        changeGravity = Config.Bind<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
-        sizeMult = Config.Bind<float>(sectionName, "Size Mult", 1, "Change how big a portal is (requires level restart)");
-
-        base.SetupConfigs(sectionName, Config);
+        changeGravity = new ConfigVar<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
+        sizeMult = new ConfigVar<float>(sectionName, "Size Mult", 1, "Change how big a portal is (requires level restart)");
     }
 
 

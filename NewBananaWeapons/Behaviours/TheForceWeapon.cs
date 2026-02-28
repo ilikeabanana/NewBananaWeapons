@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System.Collections;
 using UnityEngine;
 
@@ -14,37 +13,37 @@ public class TheForceWeapon : BaseWeapon
     GameObject manipulationEffectCurrent = null;
 
     // Configurable values
-    private static ConfigEntry<float> distance;
-    private static ConfigEntry<float> cooldownOnCrush;
-    private static ConfigEntry<float> throwForceMultiplier;
-    private static ConfigEntry<float> targetingRange;
-    private static ConfigEntry<float> bigEnemyDamage;
-    private static ConfigEntry<int> implodeStylePoints;
-    private static ConfigEntry<bool> allowImplosionOnBigEnemies;
+    private static ConfigVar<float> distance;
+    private static ConfigVar<float> cooldownOnCrush;
+    private static ConfigVar<float> throwForceMultiplier;
+    private static ConfigVar<float> targetingRange;
+    private static ConfigVar<float> bigEnemyDamage;
+    private static ConfigVar<int> implodeStylePoints;
+    private static ConfigVar<bool> allowImplosionOnBigEnemies;
 
     float cooldown = 0;
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
-        distance = Config.Bind<float>(sectionName, "Hold Distance", 25f,
+        distance = new ConfigVar<float>(sectionName, "Hold Distance", 25f,
             "Distance at which enemies are held from the camera");
 
-        cooldownOnCrush = Config.Bind<float>(sectionName, "Crush Cooldown", 1.5f,
+        cooldownOnCrush = new ConfigVar<float>(sectionName, "Crush Cooldown", 1.5f,
             "Cooldown after crushing an enemy (in seconds)");
 
-        throwForceMultiplier = Config.Bind<float>(sectionName, "Throw Force Multiplier", 40f,
+        throwForceMultiplier = new ConfigVar<float>(sectionName, "Throw Force Multiplier", 40f,
             "Multiplier for throw force when releasing enemies");
 
-        targetingRange = Config.Bind<float>(sectionName, "Targeting Range", 25f,
+        targetingRange = new ConfigVar<float>(sectionName, "Targeting Range", 25f,
             "Maximum range for grabbing enemies with the Force");
 
-        bigEnemyDamage = Config.Bind<float>(sectionName, "Big Enemy Crush Damage", 5f,
+        bigEnemyDamage = new ConfigVar<float>(sectionName, "Big Enemy Crush Damage", 5f,
             "Damage dealt to big enemies when crushing (they can't be imploded)");
 
-        implodeStylePoints = Config.Bind<int>(sectionName, "Implode Style Points", 100,
+        implodeStylePoints = new ConfigVar<int>(sectionName, "Implode Style Points", 100,
             "Style points awarded for imploding an enemy");
 
-        allowImplosionOnBigEnemies = Config.Bind<bool>(sectionName, "Allow Implosion on Big enemies", false,
+        allowImplosionOnBigEnemies = new ConfigVar<bool>(sectionName, "Allow Implosion on Big enemies", false,
             "Allows you to pickup and implode big enemies.");
     }
 

@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,18 +6,18 @@ using UnityEngine;
 public class LoaderArm : BaseWeapon
 {
     // ================= CONFIG ENTRIES =================
-    private static ConfigEntry<float> cfgMaxChargeTime;
-    private static ConfigEntry<float> cfgMinDamageMultiplier;
-    private static ConfigEntry<float> cfgMaxDamageMultiplier;
-    private static ConfigEntry<float> cfgBaseDamage;
+    private static ConfigVar<float> cfgMaxChargeTime;
+    private static ConfigVar<float> cfgMinDamageMultiplier;
+    private static ConfigVar<float> cfgMaxDamageMultiplier;
+    private static ConfigVar<float> cfgBaseDamage;
 
-    private static ConfigEntry<float> cfgVelocityDamagePerMPS;
-    private static ConfigEntry<float> cfgChargedPunchVelocity;
+    private static ConfigVar<float> cfgVelocityDamagePerMPS;
+    private static ConfigVar<float> cfgChargedPunchVelocity;
 
-    private static ConfigEntry<float> cfgPunchForce;
-    private static ConfigEntry<float> cfgHitRadius;
-    private static ConfigEntry<float> cfgHitDistance;
-    private static ConfigEntry<float> cfgPunchDuration;
+    private static ConfigVar<float> cfgPunchForce;
+    private static ConfigVar<float> cfgHitRadius;
+    private static ConfigVar<float> cfgHitDistance;
+    private static ConfigVar<float> cfgPunchDuration;
 
     // ================= RUNTIME VALUES =================
     private static float maxChargeTime;
@@ -49,20 +48,20 @@ public class LoaderArm : BaseWeapon
     private bool hasStoredCollisions;
 
     // ================= CONFIG SETUP =================
-    public override void SetupConfigs(string sectionName, ConfigFile config)
+    public override void SetupConfigs(string sectionName)
     {
-        cfgMaxChargeTime = config.Bind(sectionName, "Max Charge Time", 2.5f);
-        cfgMinDamageMultiplier = config.Bind(sectionName, "Min Damage Multiplier", 6f);
-        cfgMaxDamageMultiplier = config.Bind(sectionName, "Max Damage Multiplier", 27f);
-        cfgBaseDamage = config.Bind(sectionName, "Base Damage", 1.5f);
+        cfgMaxChargeTime = new ConfigVar<float>(sectionName, "Max Charge Time", 2.5f);
+        cfgMinDamageMultiplier = new ConfigVar<float>(sectionName, "Min Damage Multiplier", 6f);
+        cfgMaxDamageMultiplier = new ConfigVar<float>(sectionName, "Max Damage Multiplier", 27f);
+        cfgBaseDamage = new ConfigVar<float>(sectionName, "Base Damage", 1.5f);
 
-        cfgVelocityDamagePerMPS = config.Bind(sectionName, "Velocity Damage Per MPS", 0.15f);
-        cfgChargedPunchVelocity = config.Bind(sectionName, "Charged Punch Velocity", 180f);
+        cfgVelocityDamagePerMPS = new ConfigVar<float>(sectionName, "Velocity Damage Per MPS", 0.15f);
+        cfgChargedPunchVelocity = new ConfigVar<float>(sectionName, "Charged Punch Velocity", 180f);
 
-        cfgPunchForce = config.Bind(sectionName, "Punch Force", 10000f);
-        cfgHitRadius = config.Bind(sectionName, "Hit Radius", 5f);
-        cfgHitDistance = config.Bind(sectionName, "Hit Distance", 1f);
-        cfgPunchDuration = config.Bind(sectionName, "Punch Duration", 0.2f);
+        cfgPunchForce = new ConfigVar<float>(sectionName, "Punch Force", 10000f);
+        cfgHitRadius = new ConfigVar<float>(sectionName, "Hit Radius", 5f);
+        cfgHitDistance = new ConfigVar<float>(sectionName, "Hit Distance", 1f);
+        cfgPunchDuration = new ConfigVar<float>(sectionName, "Punch Duration", 0.2f);
 
         ApplyConfigValues();
     }

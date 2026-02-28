@@ -14,26 +14,26 @@ public class LaserBeam : BaseWeapon
     float damageDelay;
 
     // Configurable values
-    private static ConfigEntry<float> chargeTime;
-    private static ConfigEntry<float> laserRadius;
-    private static ConfigEntry<float> laserRange;
-    private static ConfigEntry<float> damage;
-    private static ConfigEntry<float> damageTickRate;
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    private static ConfigVar<float> chargeTime;
+    private static ConfigVar<float> laserRadius;
+    private static ConfigVar<float> laserRange;
+    private static ConfigVar<float> damage;
+    private static ConfigVar<float> damageTickRate;
+    public override void SetupConfigs(string sectionName)
     {
-        chargeTime = Config.Bind<float>(sectionName, "Charge Time", 1f,
+        chargeTime = new ConfigVar<float>(sectionName, "Charge Time", 1f,
             "Time required to charge the laser before it fires (in seconds)");
 
-        laserRadius = Config.Bind<float>(sectionName, "Laser Radius", 3f,
+        laserRadius = new ConfigVar<float>(sectionName, "Laser Radius", 3f,
             "Radius of the laser beam spherecast");
 
-        laserRange = Config.Bind<float>(sectionName, "Laser Range", 80f,
+        laserRange = new ConfigVar<float>(sectionName, "Laser Range", 80f,
             "Maximum range of the laser beam");
 
-        damage = Config.Bind<float>(sectionName, "Damage Per Tick", 0.5f,
+        damage = new ConfigVar<float>(sectionName, "Damage Per Tick", 0.5f,
             "Damage dealt per damage tick");
 
-        damageTickRate = Config.Bind<float>(sectionName, "Damage Tick Rate", 0.1f,
+        damageTickRate = new ConfigVar<float>(sectionName, "Damage Tick Rate", 0.1f,
             "Time between damage ticks (in seconds)");
 
     }

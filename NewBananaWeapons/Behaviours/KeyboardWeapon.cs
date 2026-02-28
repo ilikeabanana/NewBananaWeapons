@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,39 +14,39 @@ public class KeyboardWeapon : BaseWeapon
     StringBuilder builder = new StringBuilder();
 
     // Configurable values
-    private static ConfigEntry<float> slowMotionMultiplier;
-    private static ConfigEntry<int> capitalizationPoints;
-    private static ConfigEntry<int> punctuationPoints;
-    private static ConfigEntry<int> fullSentencePoints;
-    private static ConfigEntry<int> multiSentencePointsPerSentence;
-    private static ConfigEntry<float> wordFireDelay;
-    private static ConfigEntry<float> varietyBonusMultiplier;
-    private static ConfigEntry<float> sentenceMultiplierScale;
+    private static ConfigVar<float> slowMotionMultiplier;
+    private static ConfigVar<int> capitalizationPoints;
+    private static ConfigVar<int> punctuationPoints;
+    private static ConfigVar<int> fullSentencePoints;
+    private static ConfigVar<int> multiSentencePointsPerSentence;
+    private static ConfigVar<float> wordFireDelay;
+    private static ConfigVar<float> varietyBonusMultiplier;
+    private static ConfigVar<float> sentenceMultiplierScale;
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
-        slowMotionMultiplier = Config.Bind<float>(sectionName, "Slow Motion Multiplier", 0.25f,
+        slowMotionMultiplier = new ConfigVar<float>(sectionName, "Slow Motion Multiplier", 0.25f,
             "Time scale when typing (0.25 = 25% speed)");
 
-        capitalizationPoints = Config.Bind<int>(sectionName, "Capitalization Points", 100,
+        capitalizationPoints = new ConfigVar<int>(sectionName, "Capitalization Points", 100,
             "Style points for capitalizing first letter");
 
-        punctuationPoints = Config.Bind<int>(sectionName, "Punctuation Points", 200,
+        punctuationPoints = new ConfigVar<int>(sectionName, "Punctuation Points", 200,
             "Style points for proper punctuation");
 
-        fullSentencePoints = Config.Bind<int>(sectionName, "Full Sentence Points", 300,
+        fullSentencePoints = new ConfigVar<int>(sectionName, "Full Sentence Points", 300,
             "Bonus points for both capitalization and punctuation");
 
-        multiSentencePointsPerSentence = Config.Bind<int>(sectionName, "Multi Sentence Points", 150,
+        multiSentencePointsPerSentence = new ConfigVar<int>(sectionName, "Multi Sentence Points", 150,
             "Points per sentence when typing multiple sentences");
 
-        wordFireDelay = Config.Bind<float>(sectionName, "Word Fire Delay", 0.1f,
+        wordFireDelay = new ConfigVar<float>(sectionName, "Word Fire Delay", 0.1f,
             "Delay between firing each word (in seconds)");
 
-        varietyBonusMultiplier = Config.Bind<float>(sectionName, "Variety Bonus Multiplier", 0.5f,
+        varietyBonusMultiplier = new ConfigVar<float>(sectionName, "Variety Bonus Multiplier", 0.5f,
             "Multiplier for word variety bonus");
 
-        sentenceMultiplierScale = Config.Bind<float>(sectionName, "Sentence Multiplier Scale", 0.1f,
+        sentenceMultiplierScale = new ConfigVar<float>(sectionName, "Sentence Multiplier Scale", 0.1f,
             "How much longer sentences increase damage (0.1 = 10% per word)");
     }
 

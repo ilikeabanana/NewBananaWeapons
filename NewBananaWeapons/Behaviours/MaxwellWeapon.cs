@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System.Collections;
 using UnityEngine;
 
@@ -20,15 +19,15 @@ public class MaxwellWeapon : BaseWeapon
     GameObject rage;
 
     // Configurable values
-    private static ConfigEntry<float> petCooldown;
-    private static ConfigEntry<int> petsForEnrage;
+    private static ConfigVar<float> petCooldown;
+    private static ConfigVar<int> petsForEnrage;
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
-        petCooldown = Config.Bind<float>(sectionName, "Pet Cooldown", 1.35f,
+        petCooldown = new ConfigVar<float>(sectionName, "Pet Cooldown", 1.35f,
             "Cooldown between petting Maxwell (in seconds)");
 
-        petsForEnrage = Config.Bind<int>(sectionName, "Pets For Enrage", 5,
+        petsForEnrage = new ConfigVar<int>(sectionName, "Pets For Enrage", 5,
             "Number of pets required to enrage Maxwell");
     }
 

@@ -1,6 +1,4 @@
-﻿using BepInEx.Configuration;
-using JetBrains.Annotations;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,35 +22,35 @@ public class OarWeapon : BaseWeapon
     List<EnemyIdentifier> hitEnemies = new List<EnemyIdentifier>();
 
     // Configurable values
-    private static ConfigEntry<float> attackRadius;
-    private static ConfigEntry<float> forceEnemy;
-    private static ConfigEntry<float> forcePlayer;
-    private static ConfigEntry<float> damage;
-    private static ConfigEntry<float> maxCharge;
-    private static ConfigEntry<float> lightningDamageMultiplier;
-    private static ConfigEntry<float> cooldownMultiplier;
+    private static ConfigVar<float> attackRadius;
+    private static ConfigVar<float> forceEnemy;
+    private static ConfigVar<float> forcePlayer;
+    private static ConfigVar<float> damage;
+    private static ConfigVar<float> maxCharge;
+    private static ConfigVar<float> lightningDamageMultiplier;
+    private static ConfigVar<float> cooldownMultiplier;
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
-        attackRadius = Config.Bind<float>(sectionName, "Attack Radius", 3.5f,
+        attackRadius = new ConfigVar<float>(sectionName, "Attack Radius", 3.5f,
             "Radius of the oar swing attack");
 
-        forceEnemy = Config.Bind<float>(sectionName, "Enemy Knockback Force", 5000f,
+        forceEnemy = new ConfigVar<float>(sectionName, "Enemy Knockback Force", 5000f,
             "Knockback force applied to enemies");
 
-        forcePlayer = Config.Bind<float>(sectionName, "Player Launch Force", 72f,
+        forcePlayer = new ConfigVar<float>(sectionName, "Player Launch Force", 72f,
             "Forward launch force applied to player on swing");
 
-        damage = Config.Bind<float>(sectionName, "Swing Damage", 2.5f,
+        damage = new ConfigVar<float>(sectionName, "Swing Damage", 2.5f,
             "Damage dealt by oar swing");
 
-        maxCharge = Config.Bind<float>(sectionName, "Max Lightning Charge Time", 8.5f,
+        maxCharge = new ConfigVar<float>(sectionName, "Max Lightning Charge Time", 8.5f,
             "Time to fully charge lightning strike (in seconds)");
 
-        lightningDamageMultiplier = Config.Bind<float>(sectionName, "Lightning Damage Multiplier", 1.5f,
+        lightningDamageMultiplier = new ConfigVar<float>(sectionName, "Lightning Damage Multiplier", 1.5f,
             "Damage multiplier for lightning strike based on charge");
 
-        cooldownMultiplier = Config.Bind<float>(sectionName, "Lightning Cooldown Multiplier", 3f,
+        cooldownMultiplier = new ConfigVar<float>(sectionName, "Lightning Cooldown Multiplier", 3f,
             "Cooldown after lightning strike = charge ratio * this value");
     }
 

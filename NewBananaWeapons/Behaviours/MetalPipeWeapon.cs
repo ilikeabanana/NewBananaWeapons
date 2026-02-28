@@ -1,5 +1,4 @@
-﻿using BepInEx.Configuration;
-using NewBananaWeapons;
+﻿using NewBananaWeapons;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,19 +16,19 @@ public class MetalPipeWeapon : BaseWeapon
     List<EnemyIdentifier> hitEnemies = new List<EnemyIdentifier>();
 
     // Configurable values
-    private static ConfigEntry<float> slapRange;
-    private static ConfigEntry<float> slapDamage;
-    private static ConfigEntry<float> slapForce;
+    private static ConfigVar<float> slapRange;
+    private static ConfigVar<float> slapDamage;
+    private static ConfigVar<float> slapForce;
 
-    public override void SetupConfigs(string sectionName, ConfigFile Config)
+    public override void SetupConfigs(string sectionName)
     {
-        slapRange = Config.Bind<float>(sectionName, "Slap Range", 35f,
+        slapRange = new ConfigVar<float>(sectionName, "Slap Range", 35f,
             "Range of the metal pipe slap attack");
 
-        slapDamage = Config.Bind<float>(sectionName, "Slap Damage", 3f,
+        slapDamage = new ConfigVar<float>(sectionName, "Slap Damage", 3f,
             "Damage dealt by charged slap attack");
 
-        slapForce = Config.Bind<float>(sectionName, "Slap Force", 20f,
+        slapForce = new ConfigVar<float>(sectionName, "Slap Force", 20f,
             "Knockback force applied by slap");
     }
 

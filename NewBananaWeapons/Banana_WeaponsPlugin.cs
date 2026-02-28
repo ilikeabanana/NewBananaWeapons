@@ -31,6 +31,8 @@ namespace NewBananaWeapons
         static Dictionary<string, Sprite> armIcons = new Dictionary<string, Sprite>();
         static List<Sprite> armIconsList = new List<Sprite>();
 
+        public static ConfigFile File;
+
         GameObject funnySecret;
         GameObject dttalkPrefab;
 
@@ -43,6 +45,7 @@ namespace NewBananaWeapons
         public Dictionary<GameObject, ConfigEntry<int>> WeaponsSlots = new Dictionary<GameObject, ConfigEntry<int>>();
         private void Awake()
         {
+            File = Config;
             Instance = this;
             gameObject.hideFlags = HideFlags.DontSaveInEditor;
 
@@ -85,7 +88,7 @@ namespace NewBananaWeapons
                         WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true));
                         if (asset.GetComponentInChildren<BaseWeapon>())
                         {
-                            asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Config);
+                            asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName);
                         }
                     }
                     BundleArms.AddRange(loadedAssets);
@@ -163,7 +166,7 @@ namespace NewBananaWeapons
                             {
                                 weaponDescrip = asset.GetComponentInChildren<BaseWeapon>().GetWeaponDescription();
                                 WeaponsEnabled.Add(asset, Config.Bind<bool>(sectionName, "Enabled", true, weaponDescrip));
-                                asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName, Config);
+                                asset.GetComponentInChildren<BaseWeapon>().SetupConfigs(sectionName);
                             }
                             else
                             {
