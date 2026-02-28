@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Text;
@@ -22,14 +21,37 @@ public class PortalGun : BaseWeapon
     // Maximum cumulative snapping distance before we give up
     private const float MaxSnapDistance = 2.0f;
 
+    public AudioClip orangeSound;
+    public AudioClip blueSound;
+
+    public GameObject blueTube;
+    public GameObject orangeTube;
+
     Animator anim;
+    AudioSource source;
 
     static ConfigVar<bool> changeGravity;
     public static ConfigVar<float> sizeMult;
 
+
+    public void FireBlue()
+    {
+        orangeTube.SetActive(false);
+        blueTube.SetActive(true);
+        source.PlayOneShot(blueSound);
+    }
+
+    public void FireOrange()
+    {
+        orangeTube.SetActive(true);
+        blueTube.SetActive(false);
+        source.PlayOneShot(orangeSound);
+    }
+
     void Awake()
     {
         anim = GetComponent<Animator>();
+        source = GetComponent<AudioSource>();
     }
 
     public override void SetupConfigs(string sectionName)
@@ -56,20 +78,22 @@ public class PortalGun : BaseWeapon
         if (CameraController.Instance == null) return;
         if (!GunControl.Instance.activated) return;
 
-        KeyValuePair<PhysicsCastResult, PortalTraversalV2[]> hit = aimHit;
+        PhysicsCastResult hit = aimHit;
 
         if (InputManager.Instance.InputSource.Fire1.WasPerformedThisFrame)
         {
-
-            anim.SetTrigger("BlueShot");
-            UpdatePortal(ref quad1, "Portal_Entry", hit.Key);
+            FireBlue();
+            anim.SetInteger("Int", (int)Random.Range(0, 1));
+            anim.SetTrigger("Shoot");
+            UpdatePortal(ref quad1, "Portal_Entry", hit);
             if (quad2 != null && !alrSetupPortals) SetupPortals();
         }
         else if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
         {
-
-            anim.SetTrigger("OrangeShot");
-            UpdatePortal(ref quad2, "Portal_Exit", hit.Key);
+            FireOrange();
+            anim.SetInteger("Int", (int)Random.Range(0, 1));
+            anim.SetTrigger("Shoot"); 
+            UpdatePortal(ref quad2, "Portal_Exit", hit);
             if (quad1 != null && !alrSetupPortals) SetupPortals();
         }
     }
@@ -242,25 +266,22 @@ public class PortalGun : BaseWeapon
     }
     #endregion
 
-    KeyValuePair<PhysicsCastResult, PortalTraversalV2[]> aimHit
+    PhysicsCastResult aimHit
     {
         get
         {
             Transform camTrans = CameraController.Instance.transform;
             PhysicsCastResult hit;
-            PortalTraversalV2[] array;
-            Vector3 endpoint;
 
-            if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, 100, LayerMaskDefaults.Get(LMD.Environment), out hit,
-                out array, out endpoint))
+            if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, out hit, 100, LayerMaskDefaults.Get(LMD.Environment)))
             {
-                return new KeyValuePair<PhysicsCastResult, PortalTraversalV2[]>(hit, array);
+                return hit;
             }
 
             hit = new PhysicsCastResult();
             hit.point = camTrans.position + camTrans.forward * 100;
             hit.normal = -camTrans.forward;
-            return new KeyValuePair<PhysicsCastResult, PortalTraversalV2[]>(hit, new PortalTraversalV2[0]);
+            return hit;
         }
     }
 
