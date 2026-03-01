@@ -23,6 +23,11 @@ public class TheForceWeapon : BaseWeapon
 
     float cooldown = 0;
 
+    public override string GetWeaponDescription()
+    {
+        return "Left click to use the force, big enemies wont be picked up (can be changed), right click to instakill non big enemies. Deal 5 damage to big enemies";
+    }
+
     public override void SetupConfigs(string sectionName)
     {
         distance = new ConfigVar<float>(sectionName, "Hold Distance", 25f,

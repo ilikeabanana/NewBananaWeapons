@@ -80,7 +80,7 @@ public class MaxwellProjectile : MonoBehaviour
                     en.gameObject,
                     Vector3.zero,
                     en.transform.position,
-                    0.2f,    // tiny damage
+                    MaxwellWeapon.catDamage.Value,    // tiny damage
                     false
                 );
             }

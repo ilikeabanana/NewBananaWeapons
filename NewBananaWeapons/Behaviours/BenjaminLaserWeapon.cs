@@ -3,12 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BenjaminLaserWeapon : MonoBehaviour
+public class BenjaminLaserWeapon : BaseWeapon
 {
     public GameObject chargingLaser;
     public GameObject laser;
 
     Animator anim;
+
+    public static ConfigVar<float> damage;
+    public override void SetupConfigs(string sectionName)
+    {
+        damage = new ConfigVar<float>(sectionName, "Damage", 125);
+        base.SetupConfigs(sectionName);
+    }
+
+    public override string GetWeaponDescription()
+    {
+        return "Fires a massive laser dealing 125 damage (changeable)";
+    }
 
     void Awake()
     {
@@ -65,7 +77,7 @@ public class BenjaminLaserWeapon : MonoBehaviour
 
                 eidd.eid.hitter = "BenjaminBeam";
                 eidd.eid.DeliverDamage(hit.collider.gameObject, camTrans.forward * int.MaxValue, hit.point,
-                    125, true);
+                    damage.Value, true);
                 alreadyHitEnemies.Add(eidd.eid);
 
             }

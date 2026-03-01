@@ -1,9 +1,14 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class FuckYouArm : MonoBehaviour
+public class FuckYouArm : BaseWeapon
 {
     Animator anim;
+
+    public override string GetWeaponDescription()
+    {
+        return "Express dissatisfaction...";
+    }
 
     void Awake()
     {

@@ -1,7 +1,7 @@
 ﻿using NewBananaWeapons;
 using UnityEngine;
 
-public class JujutsuKaisenTechniques : MonoBehaviour
+public class JujutsuKaisenTechniques : BaseWeapon
 {
     public Transform blueCharge;
     public Transform redCharge;
@@ -34,6 +34,11 @@ public class JujutsuKaisenTechniques : MonoBehaviour
     InputManager inman;
     AudioSource source;
 
+    public override string GetWeaponDescription()
+    {
+        return "Holding left click and then letting go fires blue, with right click you fire red. Holding both you fire purple";
+    }
+
     void Awake()
     {
         inman = InputManager.Instance;
@@ -43,7 +48,6 @@ public class JujutsuKaisenTechniques : MonoBehaviour
         redCharge.gameObject.SetActive(false);
         purpleCharge.gameObject.SetActive(false);
 
-        // ✅ CORRECT: scale vs position
         blueStartScale = blueCharge.localScale;
         redStartScale = redCharge.localScale;
         purpleStartScale = purpleCharge.localScale;

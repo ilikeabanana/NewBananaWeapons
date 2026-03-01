@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using NewBananaWeapons;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ULTRAKILL.Cheats;
 using ULTRAKILL.Portal;
 using ULTRAKILL.Portal.Geometry;
-using UnityEngine;
 using ULTRAKILL.Portal.Native;
+using UnityEngine;
 
 
 public class PortalGun : BaseWeapon
@@ -31,6 +33,7 @@ public class PortalGun : BaseWeapon
     AudioSource source;
 
     static ConfigVar<bool> changeGravity;
+    public static ConfigVar<float> aspectRatio;
     public static ConfigVar<float> sizeMult;
 
 
@@ -56,9 +59,9 @@ public class PortalGun : BaseWeapon
 
     public override void SetupConfigs(string sectionName)
     {
-
         changeGravity = new ConfigVar<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
         sizeMult = new ConfigVar<float>(sectionName, "Size Mult", 1, "Change how big a portal is (requires level restart)");
+        aspectRatio = new ConfigVar<float>(sectionName, "Aspect Ratio", 2f, "Height-to-width ratio of the portal (default 2 = classic Portal look, requires level restart)");
     }
 
 
@@ -68,9 +71,9 @@ public class PortalGun : BaseWeapon
     }
 
     GameObject quad2;
-    GameObject quad2Wall;
+    GameObject quad2Outline;
     GameObject quad1;
-    GameObject quad1Wall;
+    GameObject quad1Outline;
     bool alrSetupPortals;
 
     void PortalAttempt()
@@ -85,7 +88,7 @@ public class PortalGun : BaseWeapon
             FireBlue();
             anim.SetInteger("Int", (int)Random.Range(0, 1));
             anim.SetTrigger("Shoot");
-            UpdatePortal(ref quad1, "Portal_Entry", hit);
+            UpdatePortal(ref quad1, ref quad1Outline, "Portal_Entry", hit, new Color(0.153f, 0.655f, 0.847f));
             if (quad2 != null && !alrSetupPortals) SetupPortals();
         }
         else if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
@@ -93,15 +96,26 @@ public class PortalGun : BaseWeapon
             FireOrange();
             anim.SetInteger("Int", (int)Random.Range(0, 1));
             anim.SetTrigger("Shoot"); 
-            UpdatePortal(ref quad2, "Portal_Exit", hit);
+            UpdatePortal(ref quad2, ref quad2Outline, "Portal_Exit", hit, new Color(1.0f, 0.604f, 0.0f));
             if (quad1 != null && !alrSetupPortals) SetupPortals();
         }
     }
 
-    void UpdatePortal(ref GameObject portalObj, string name, PhysicsCastResult hit)
+    void UpdatePortal(ref GameObject portalObj, ref GameObject outlineObj, string name, PhysicsCastResult hit, Color portalColor)
     {
         // Compute the correct orientation before we do any snapping so that
         // floor/ceiling portals already carry the player-relative "up".
+
+        GameObject lineObject = new GameObject();
+        lineObject.transform.position = CameraController.Instance.transform.position;
+        lineObject.transform.forward = CameraController.Instance.transform.forward;
+        LineRenderer lr = lineObject.AddComponent<LineRenderer>();
+        lr.positionCount = 2;
+        lr.material.shader = AddressableManager.unlit;
+        lr.material.color = portalColor;
+        lineObject.AddComponent<PortalBeam>().shootColor = portalColor;
+        
+
         Quaternion portalRotation = ComputePortalRotation(hit);
 
         // Try to nudge the portal centre onto a fully-valid patch of surface.
@@ -121,12 +135,27 @@ public class PortalGun : BaseWeapon
         {
             portalObj = new GameObject(name);
             portalObj.AddComponent<BoxCollider>().isTrigger = true;
-            portalObj.transform.localScale = new Vector3(1.25f * sizeMult.Value, 2.5f * sizeMult.Value, 1f * sizeMult.Value);
+            portalObj.transform.localScale = new Vector3(1.25f * sizeMult.Value, 1.25f * sizeMult.Value * aspectRatio.Value, 1f * sizeMult.Value);
             portalObj.SetActive(false);
         }
 
+        if (outlineObj == null)
+        {
+            outlineObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            outlineObj.GetComponent<Renderer>().material.shader = AddressableManager.unlit;
+            outlineObj.GetComponent<Renderer>().material.color = portalColor;
+            Destroy(outlineObj.GetComponent<Collider>());
+            outlineObj.transform.localScale = new Vector3(
+                3.75f * sizeMult.Value,
+                (3.75f * sizeMult.Value * aspectRatio.Value) - 0.5f,
+                0.01f
+            ) * 1.2f;
+        }
+
         portalObj.transform.rotation = portalRotation;
+        outlineObj.transform.rotation = portalRotation;
         // Slight offset along normal to prevent Z-fighting / clipping
+        outlineObj.transform.position = snappedPosition + hit.normal * 0.025f;
         portalObj.transform.position = snappedPosition + hit.normal * 0.05f;
 
         PortalCollisionFixer fixer = portalObj.GetOrAddComponent<PortalCollisionFixer>();
@@ -295,7 +324,7 @@ public class PortalGun : BaseWeapon
         fixer2.partner = fixer1;
 
         Portal portal1 = quad1.AddComponent<Portal>();
-        portal1.shape = new PlaneShape { width = 3.75f * sizeMult.Value, height = 7.5f * sizeMult.Value };
+        portal1.shape = new PlaneShape { width = 3.75f * sizeMult.Value, height = 3.75f * sizeMult.Value * aspectRatio.Value };
         portal1.entry = quad2.transform;
         portal1.exit = quad1.transform;
         portal1.supportInfiniteRecursion = true;

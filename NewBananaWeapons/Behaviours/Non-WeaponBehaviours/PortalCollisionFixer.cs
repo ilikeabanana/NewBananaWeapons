@@ -25,10 +25,6 @@ public class PortalCollisionFixer : MonoBehaviour
 
     public bool isGhosting => selfGhosting || partnerForced;
 
-
-
-
-
     public bool isOnFloor
     {
         get
@@ -84,11 +80,7 @@ public class PortalCollisionFixer : MonoBehaviour
         // --- Player ghosting ---
         if (playerCollider != null)
         {
-            float distance = Vector3.Distance(
-                transform.position,
-                playerCollider.bounds.ClosestPoint(transform.position));
-
-            bool shouldSelfGhost = distance < ghostRadius * PortalGun.sizeMult.Value;
+            bool shouldSelfGhost = IsPlayerWithinPortalBounds(playerCollider);
             if (shouldSelfGhost != selfGhosting)
             {
                 selfGhosting = shouldSelfGhost;
@@ -106,7 +98,12 @@ public class PortalCollisionFixer : MonoBehaviour
     private void UpdatePhysicsObjectGhosting()
     {
         // Find all rigidbodies within ghostRadius
-        Collider[] nearby = Physics.OverlapSphere(transform.position, ghostRadius * PortalGun.sizeMult.Value);
+        Vector3 halfExtents = new Vector3(
+            1.1f * transform.lossyScale.x,   // portal half-width  + margin
+            1.1f * transform.lossyScale.y,   // portal half-height + margin
+            ghostRadius * PortalGun.sizeMult.Value   // depth envelope
+        );
+        Collider[] nearby = Physics.OverlapBox(transform.position, halfExtents, transform.rotation);
         var newGhosted = new List<Collider>();
 
         foreach (Collider col in nearby)
@@ -115,6 +112,7 @@ public class PortalCollisionFixer : MonoBehaviour
             if (col == playerCollider) continue;
             if (col.GetComponent<Rigidbody>() == null && col.GetComponentInParent<Rigidbody>() == null) continue;
             if (col.transform.IsChildOf(transform)) continue;
+            if (NewMovement.Instance != null && col.transform.IsChildOf(NewMovement.Instance.transform)) continue;
 
             newGhosted.Add(col);
 
@@ -211,6 +209,23 @@ public class PortalCollisionFixer : MonoBehaviour
 
             Banana_WeaponsPlugin.Log.LogInfo($"Wall {targetWalls[i].name} is now {status} for Player.");
         }
+    }
+
+    private bool IsPlayerWithinPortalBounds(Collider col)
+    {
+        // InverseTransformPoint handles position + rotation + scale,
+        // so the portal rectangle is always [-0.5, 0.5] on X and Y in local space.
+        Vector3 localPos = transform.InverseTransformPoint(col.bounds.center);
+
+        // Small expansion so the ghosting kicks in just before the player hits the edge,
+        // preventing a 1-frame collision flash. Keep it modest (0.2 local units).
+        const float expand = 0.2f;
+
+        // Z is depth along the portal normal. The portal scale on Z is 1*sizeMult,
+        // so ghostRadius local units = ghostRadius*sizeMult world units — matches old behaviour.
+        return Mathf.Abs(localPos.x) < 1.2f + expand   // within portal width
+            && Mathf.Abs(localPos.y) < 1.2f + expand   // within portal height
+            && Mathf.Abs(localPos.z) < ghostRadius;     // within depth envelope
     }
 
     void OnDestroy()

@@ -20,8 +20,19 @@ public class MetalPipeWeapon : BaseWeapon
     private static ConfigVar<float> slapDamage;
     private static ConfigVar<float> slapForce;
 
+    public static ConfigVar<float> pipeProjectileMaxDamage;
+    public static ConfigVar<float> pipeProjectileDefaultDamage;
+
+    public override string GetWeaponDescription()
+    {
+        return "Left click to slap, right click to throw pipe. (Can be parried)";
+    }
+
     public override void SetupConfigs(string sectionName)
     {
+        pipeProjectileMaxDamage = new ConfigVar<float>(sectionName, "Max Damage Projectile", 10);
+        pipeProjectileDefaultDamage = new ConfigVar<float>(sectionName, "Default Damage", 4.5f);
+
         slapRange = new ConfigVar<float>(sectionName, "Slap Range", 35f,
             "Range of the metal pipe slap attack");
 

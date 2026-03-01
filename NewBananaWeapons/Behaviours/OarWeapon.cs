@@ -30,6 +30,11 @@ public class OarWeapon : BaseWeapon
     private static ConfigVar<float> lightningDamageMultiplier;
     private static ConfigVar<float> cooldownMultiplier;
 
+    public override string GetWeaponDescription()
+    {
+        return "Left click to swing your oar, launching you forward. Right click to charge a lightning bolt. The longer you charge, the bigger the explosion and damage";
+    }
+
     public override void SetupConfigs(string sectionName)
     {
         attackRadius = new ConfigVar<float>(sectionName, "Attack Radius", 3.5f,

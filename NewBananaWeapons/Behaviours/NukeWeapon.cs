@@ -2,9 +2,14 @@
 using System.Collections;
 using UnityEngine;
 
-public class NukeWeapon : MonoBehaviour
+public class NukeWeapon : BaseWeapon
 {
     public GameObject explosion;
+
+    public override string GetWeaponDescription()
+    {
+        return "Left click to activate, killing everyone";
+    }
 
     // Update is called once per frame
     void Update()

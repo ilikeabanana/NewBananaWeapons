@@ -11,6 +11,7 @@ public class TableProjectile : MonoBehaviour
     public bool parried = false;
     private void Awake()
     {
+        damage = TableWeapon.baseDamage.Value;
         rb = GetComponent<Rigidbody>();
     }
 

@@ -4,13 +4,24 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class SmartPistol : MonoBehaviour
+public class SmartPistol : BaseWeapon
 {
     public List<EnemyIdentifier> targets = new List<EnemyIdentifier>();
     public Dictionary<EnemyIdentifier, List<LineRenderObject>> lRend = new Dictionary<EnemyIdentifier, List<LineRenderObject>>();
     public Transform firePoint;
     public TMP_Text targetCountDisplay;
     public AudioClip shootSound;
+
+    public override string GetWeaponDescription()
+    {
+        return "Right click selects targets, left click to fire to all targets";
+    }
+    static ConfigVar<int> maxTargets;
+    public override void SetupConfigs(string sectionName)
+    {
+        maxTargets = new ConfigVar<int>(sectionName, "Max Targets", 12);
+        base.SetupConfigs(sectionName);
+    }
 
     Animator anim;
 
@@ -50,7 +61,7 @@ public class SmartPistol : MonoBehaviour
         targetCountDisplay.text = "Targets:\n" + targets.Count;
 
         // === TARGETING ===
-        if (InputManager.Instance.InputSource.Fire2.IsPressed && targets.Count < 12)
+        if (InputManager.Instance.InputSource.Fire2.IsPressed && targets.Count < maxTargets.Value)
         {
             t -= Time.deltaTime;
             if (t <= 0f)

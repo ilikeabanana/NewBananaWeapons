@@ -66,6 +66,11 @@ public class LoaderArm : BaseWeapon
         ApplyConfigValues();
     }
 
+    public override string GetWeaponDescription()
+    {
+        return "Press punch to just punch, holding punch allows you to charge up a piercing punch, dealing damage based on charge time and velocity";
+    }
+
     private void ApplyConfigValues()
     {
         maxChargeTime = cfgMaxChargeTime.Value;
@@ -94,7 +99,7 @@ public class LoaderArm : BaseWeapon
     private void Update()
     {
         anim.SetBool("HoldingPunch", InputManager.Instance.InputSource.Punch.IsPressed);
-
+        ApplyConfigValues();
         HandleCharging();
         HandlePunching();
     }

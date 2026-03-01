@@ -56,7 +56,7 @@ public class CarProjectile : MonoBehaviour
                 {
                     if (alreadyHitEnemies.Contains(enemyHit.eid)) continue;
                     enemyHit.eid.hitter = "car";
-                    enemyHit.eid.DeliverDamage(col.gameObject, transform.forward * 20000 * 20, enemyHit.transform.position, 25, false, sourceWeapon: sourceWeapon);
+                    enemyHit.eid.DeliverDamage(col.gameObject, transform.forward * 20000 * 20, enemyHit.transform.position, DavidWeapon.carDamage.Value, false, sourceWeapon: sourceWeapon);
                     alreadyHitEnemies.Add(enemyHit.eid);
                 }
 

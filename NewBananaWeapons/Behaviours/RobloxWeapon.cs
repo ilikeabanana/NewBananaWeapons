@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RobloxWeapon : MonoBehaviour
+public class RobloxWeapon : BaseWeapon
 {
     public GameObject bomb;
     public GameObject superBall;
@@ -19,6 +19,10 @@ public class RobloxWeapon : MonoBehaviour
         null, null, null, null, null, null, null, null, null
     };
 
+    public override string GetWeaponDescription()
+    {
+        return "Contains the roblox weapons from the hit game Doomspire, left click to use, right click to switch";
+    }
 
     Quaternion swordRestRotation;
 

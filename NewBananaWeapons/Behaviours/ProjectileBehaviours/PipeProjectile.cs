@@ -30,6 +30,10 @@ public class PipeProjectile : MonoBehaviour
         {
             StartCoroutine(ShaderManager.ApplyShaderToGameObject(expl.explosionChunk));
         }
+
+        defaultDamage = MetalPipeWeapon.pipeProjectileDefaultDamage.Value;
+        maxDamage = MetalPipeWeapon.pipeProjectileMaxDamage.Value;
+
         Calculate();
     }
 

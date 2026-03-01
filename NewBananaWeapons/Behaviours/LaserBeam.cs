@@ -19,6 +19,12 @@ public class LaserBeam : BaseWeapon
     private static ConfigVar<float> laserRange;
     private static ConfigVar<float> damage;
     private static ConfigVar<float> damageTickRate;
+
+    public override string GetWeaponDescription()
+    {
+        return "Charge up a laser... Thats kinda it.";
+    }
+
     public override void SetupConfigs(string sectionName)
     {
         chargeTime = new ConfigVar<float>(sectionName, "Charge Time", 1f,

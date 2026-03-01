@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 
-public class TableWeapon : MonoBehaviour
+public class TableWeapon : BaseWeapon
 {
     public Transform table;
     public GameObject tableProjectile;
@@ -11,6 +11,17 @@ public class TableWeapon : MonoBehaviour
     Vector3 origiScaleTable = new Vector3(64.32401f, 64.32401f, 64.32401f);
     float tableCooldown = 1;
     Animator anim;
+
+    public static ConfigVar<float> baseDamage;
+    public override void SetupConfigs(string sectionName)
+    {
+        baseDamage = new ConfigVar<float>(sectionName, "Damage", 5);
+        base.SetupConfigs(sectionName);
+    }
+    public override string GetWeaponDescription()
+    {
+        return "Left click to kick table, (can be parried)";
+    }
 
     private void Awake()
     {

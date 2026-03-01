@@ -24,7 +24,7 @@ namespace NewBananaWeapons
         private static readonly Harmony Harmony = new Harmony(MyGUID);
         public static ManualLogSource Log = new ManualLogSource(PluginName);
         static List<GameObject> addedArms = new List<GameObject>();
-        List<GameObject> BundleArms = new List<GameObject>();
+        static List<GameObject> BundleArms = new List<GameObject>();
         static List<GameObject> addedWeapons = new List<GameObject>();
         List<GameObject> BundleWeapons = new List<GameObject>();
 
@@ -41,7 +41,7 @@ namespace NewBananaWeapons
         public static Dictionary<GameObject, float> cooldowns = new Dictionary<GameObject, float>();
 
 
-        public Dictionary<GameObject, ConfigEntry<bool>> WeaponsEnabled = new Dictionary<GameObject, ConfigEntry<bool>>();
+        public static Dictionary<GameObject, ConfigEntry<bool>> WeaponsEnabled = new Dictionary<GameObject, ConfigEntry<bool>>();
         public Dictionary<GameObject, ConfigEntry<int>> WeaponsSlots = new Dictionary<GameObject, ConfigEntry<int>>();
         private void Awake()
         {
@@ -518,7 +518,10 @@ namespace NewBananaWeapons
         public void AddArm(GameObject arm)
         {
             if (arm == null) return;
-
+            if (WeaponsEnabled.ContainsKey(arm))
+            {
+                if (!WeaponsEnabled[arm].Value) return;
+            }
             addedArms.Add(arm);
             var fistControl = MonoSingleton<FistControl>.Instance; 
             if (fistControl != null)
@@ -534,6 +537,17 @@ namespace NewBananaWeapons
             {
                 Log.LogInfo("Arm icon number: " + current);
                 if (__instance.fistIcons.Length >= current + 1) return true;
+
+                List<Sprite> useableSprites = new List<Sprite>();
+                for (int i = 0; i < Banana_WeaponsPlugin.armIconsList.Count; i++)
+                {
+                    GameObject armEquipped = Banana_WeaponsPlugin.BundleArms[i];
+                    if (WeaponsEnabled.ContainsKey(armEquipped))
+                    {
+                        if (WeaponsEnabled[armEquipped].Value) useableSprites.Add(Banana_WeaponsPlugin.armIconsList[i]);
+                    }
+                }
+
                 __instance.fistFill.sprite = Banana_WeaponsPlugin.armIconsList[current - __instance.fistIcons.Length];
                 __instance.fistBackground.sprite = Banana_WeaponsPlugin.armIconsList[current - __instance.fistIcons.Length];
 

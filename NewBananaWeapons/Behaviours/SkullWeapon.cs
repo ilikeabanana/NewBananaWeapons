@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class SkullWeapon : MonoBehaviour
+public class SkullWeapon : BaseWeapon
 {
     public GameObject skullProjectile;
     public GameObject skeletonThatAppearsWhenRightClicked;
@@ -19,6 +19,24 @@ public class SkullWeapon : MonoBehaviour
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(skullProjectile));
     }
 
+    static ConfigVar<float> distractTime;
+    static ConfigVar<float> skullDamage;
+    public override void SetupConfigs(string sectionName)
+    {
+        distractTime = new ConfigVar<float>(sectionName, "Distract Time", 10);
+        if (skullProjectile.TryGetComponent<Projectile>(out Projectile projectile))
+        {
+            skullDamage = new ConfigVar<float>(sectionName, "Damage", projectile.damage);
+        }
+        
+        base.SetupConfigs(sectionName);
+    }
+
+    public override string GetWeaponDescription()
+    {
+        return "Left click to fire, when there are skulls and you right click, you distract enemies for 10s";
+    }
+
     public void Throw()
     {
         GameObject proj = Instantiate(skullProjectile, CameraController.Instance.transform.position, CameraController.Instance.transform.rotation);
@@ -27,6 +45,7 @@ public class SkullWeapon : MonoBehaviour
         {
             projectile.playerBullet = true;
             projectile.friendly = true;
+            projectile.damage = skullDamage.Value;
         }
     }
 

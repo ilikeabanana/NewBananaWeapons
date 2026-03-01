@@ -4,14 +4,28 @@ using ULTRAKILL.Cheats;
 using UnityEngine;
 
 
-public class SwordWeapon : MonoBehaviour
+public class SwordWeapon : BaseWeapon
 {
     float timeBetweenSlashes = 3;
     float cd;
     Animator anim;
 
     bool activeFrames = false;
+    bool alreadyDoneThingies = false;
     List<EnemyIdentifier> alreadyHitEnemies = new List<EnemyIdentifier>();
+
+
+    public override string GetWeaponDescription()
+    {
+        return "Left click to swing";
+    }
+
+    static ConfigVar<float> swordDamage;
+    public override void SetupConfigs(string sectionName)
+    {
+        swordDamage = new ConfigVar<float>(sectionName, "Damage", 25);
+        base.SetupConfigs(sectionName);
+    }
 
     // Use this for initialization
     void Start()
@@ -90,8 +104,9 @@ public class SwordWeapon : MonoBehaviour
                 }
             }
 
-            if (hitAnyEnemy)
+            if (hitAnyEnemy && alreadyDoneThingies)
             {
+                alreadyDoneThingies = true;
                 MonoSingleton<TimeController>.Instance.HitStop(0.05f);
                 CameraController.Instance.CameraShake(0.2f);
             }
@@ -105,6 +120,7 @@ public class SwordWeapon : MonoBehaviour
 
     public void ActivateFrames()
     {
+        alreadyDoneThingies = false;
         alreadyHitEnemies.Clear();
         activeFrames = true;
     }
@@ -117,7 +133,7 @@ public class SwordWeapon : MonoBehaviour
             eidd.gameObject,
             direction * 100f,
             hitPoint,
-            25,
+            swordDamage.Value,
             false
         );
         alreadyHitEnemies.Add(eid);

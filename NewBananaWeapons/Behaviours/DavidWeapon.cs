@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DavidWeapon : MonoBehaviour
+public class DavidWeapon : BaseWeapon
 {
     public List<AudioClip> idleClips = new List<AudioClip>();
 
@@ -19,6 +19,19 @@ public class DavidWeapon : MonoBehaviour
     AudioSource source;
 
     GameObject thrownDavid;
+
+    public static ConfigVar<float> carDamage;
+
+    public override void SetupConfigs(string sectionName)
+    {
+        carDamage = new ConfigVar<float>(sectionName, "Damage", 25);
+        base.SetupConfigs(sectionName);
+    }
+
+    public override string GetWeaponDescription()
+    {
+        return "Left click to spawn david, once david is placed down. Press right click to spawn a car dealing 25 damage";
+    }
 
     void Awake()
     {

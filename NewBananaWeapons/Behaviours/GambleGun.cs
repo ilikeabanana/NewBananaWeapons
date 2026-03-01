@@ -33,6 +33,11 @@ public class GambleGun : BaseWeapon
     private static ConfigVar<int> coinEnemyDamage;
     private static ConfigVar<bool> riggedModeConfig;
 
+    public override string GetWeaponDescription()
+    {
+        return "Left click to gamble, depending on the outcome. You get different damage";
+    }
+
     public override void SetupConfigs(string sectionName)
     {
         spinDuration = new ConfigVar<float>(sectionName, "Spin Duration", 0.5f,

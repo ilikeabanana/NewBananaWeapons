@@ -22,7 +22,7 @@ public class HelicopterProjectile : MonoBehaviour
         if (col.gameObject.TryGetComponent<EnemyIdentifierIdentifier>(out EnemyIdentifierIdentifier eidd))
         {
             eidd.eid.DeliverDamage(col.gameObject, transform.forward * 10,
-                eidd.eid.transform.position, 70, false);
+                eidd.eid.transform.position, CharlesWeapon.helicopterDamage.Value, false);
         }
 
         if(col.gameObject.TryGetComponent<NewMovement>(out NewMovement nm))

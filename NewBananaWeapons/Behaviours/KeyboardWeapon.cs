@@ -23,6 +23,11 @@ public class KeyboardWeapon : BaseWeapon
     private static ConfigVar<float> varietyBonusMultiplier;
     private static ConfigVar<float> sentenceMultiplierScale;
 
+    public override string GetWeaponDescription()
+    {
+        return "Left click ot begin typing, certain words and adjectives give modifiers, and so does how long your sentence is and if theres captilization + punctuation. (read README for more info about modifiers)";
+    }
+
     public override void SetupConfigs(string sectionName)
     {
         slowMotionMultiplier = new ConfigVar<float>(sectionName, "Slow Motion Multiplier", 0.25f,

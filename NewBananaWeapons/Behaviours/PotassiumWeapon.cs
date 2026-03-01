@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PotassiumWeapon : MonoBehaviour
+public class PotassiumWeapon : BaseWeapon
 {
     public GameObject carPrefab;
     public GameObject bananaPrefab;
 
+    public override string GetWeaponDescription()
+    {
+        return "Place bananas as waypoints and right click to spawn queen deltarune";
+    }
 
     List<Transform> wayPoints = new List<Transform>();
     LineRenderer line;

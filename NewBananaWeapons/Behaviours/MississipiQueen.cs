@@ -1,18 +1,28 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class MississipiQueen : MonoBehaviour
+public class MississipiQueen : BaseWeapon
 {
     public Renderer interiorMat;
     float fadeDuration = 1f;
     float bulletRange = 100f;
-    float bulletDamage = 10f;
+    static ConfigVar<float> bulletDamage;
     public Transform firePoint;
 
     AudioSource missippiQueen;
 
     Animator anim;
     bool doingSequence = false;
+
+    public override string GetWeaponDescription()
+    {
+        return "On fire, play a gun animation while playing mississipi queen";
+    }
+
+    public override void SetupConfigs(string sectionName)
+    {
+        bulletDamage = new ConfigVar<float>(sectionName, "Bullet Damage", 10f);
+    }
 
     void Awake()
     {
@@ -40,7 +50,7 @@ public class MississipiQueen : MonoBehaviour
             //Time.timeScale = 0;
             TimeController.Instance.RestoreTime();
             anim.speed = 0.15f;
-
+            CameraController.Instance.enabled = false;
             AudioMixerController.Instance.SetMusicVolume(0);
         }
     }
@@ -91,7 +101,7 @@ public class MississipiQueen : MonoBehaviour
             var health = hit.collider.GetComponent<EnemyIdentifierIdentifier>();
             if (health != null)
             {
-                health.eid.SimpleDamage(bulletDamage);
+                health.eid.SimpleDamage(bulletDamage.Value);
             }
 
             // Debug impact
@@ -109,5 +119,6 @@ public class MississipiQueen : MonoBehaviour
         TimeController.Instance.timeScaleModifier = 1f;
         TimeController.Instance.RestoreTime();
         AudioMixerController.Instance.SetMusicVolume(AudioMixerController.Instance.optionsMusicVolume);
+        CameraController.Instance.enabled = true;
     }
 }

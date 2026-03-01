@@ -2,9 +2,23 @@
 using System.Collections;
 using UnityEngine;
 
-public class CharlesWeapon : MonoBehaviour
+public class CharlesWeapon : BaseWeapon
 {
     public GameObject helicopter;
+
+
+    public static ConfigVar<float> helicopterDamage;
+
+    public override void SetupConfigs(string sectionName)
+    {
+        helicopterDamage = new ConfigVar<float>(sectionName, "Damage", 70);
+        base.SetupConfigs(sectionName);
+    }
+
+    public override string GetWeaponDescription()
+    {
+        return "Click somewhere to spawn charles, charles will spawn 1350m high up in the air and fall down, will pierce through the ground dealing 70 damage to enemies, and instakilling the player.";
+    }
 
     void Start()
     {

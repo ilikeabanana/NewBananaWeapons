@@ -21,9 +21,13 @@ public class MaxwellWeapon : BaseWeapon
     // Configurable values
     private static ConfigVar<float> petCooldown;
     private static ConfigVar<int> petsForEnrage;
+    public static ConfigVar<float> catDamage;
+
 
     public override void SetupConfigs(string sectionName)
     {
+        catDamage = new ConfigVar<float>(sectionName, "Damage", 0.2f);
+
         petCooldown = new ConfigVar<float>(sectionName, "Pet Cooldown", 1.35f,
             "Cooldown between petting Maxwell (in seconds)");
 
