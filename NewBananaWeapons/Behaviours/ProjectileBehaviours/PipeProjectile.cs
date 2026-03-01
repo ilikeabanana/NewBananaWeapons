@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using HarmonyLib;
 using NewBananaWeapons;
-using HarmonyLib;
+using System.Collections;
+using ULTRAKILL.Portal;
+using UnityEngine;
 
 
 public class PipeProjectile : MonoBehaviour
@@ -25,6 +26,7 @@ public class PipeProjectile : MonoBehaviour
 
     void Awake()
     {
+        gameObject.AddComponent<SimplePortalTraveler>();
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(wallHitExplosion));
         foreach (var expl in wallHitExplosion.GetComponentsInChildren<Explosion>(true))
         {

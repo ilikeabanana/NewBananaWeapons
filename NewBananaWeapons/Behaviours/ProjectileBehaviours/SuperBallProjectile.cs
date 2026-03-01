@@ -1,10 +1,17 @@
 ﻿using System.Collections;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
 public class SuperBallProjectile : MonoBehaviour
 {
     [HideInInspector] public float damage = 50;
+
+    void Awake()
+    {
+        gameObject.AddComponent<SimplePortalTraveler>();
+    }
+
     void OnCollisionEnter(Collision hit)
     {
         if (LayerMaskDefaults.IsMatchingLayer(hit.gameObject.layer, LMD.EnemiesAndEnvironment))

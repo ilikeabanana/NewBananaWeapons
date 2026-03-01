@@ -54,7 +54,7 @@ public class PortalBeam : MonoBehaviour
 
         Vector3 position = base.transform.position;
         Vector3 forward = base.transform.forward;
-        float num2 = 1000f;
+        float num2 = PortalGun.range.Value;
         LayerMask mask = LayerMaskDefaults.Get(LMD.Environment);
         PhysicsCastResult physicsCastResult;
         PortalTraversalV2[] array;

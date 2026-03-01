@@ -1,5 +1,6 @@
 ﻿using NewBananaWeapons;
 using System.Collections.Generic;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 public class TechniqueProjectile : MonoBehaviour
@@ -9,6 +10,10 @@ public class TechniqueProjectile : MonoBehaviour
         Blue,
         Red,
         Purple
+    }
+    void Awake()
+    {
+        gameObject.AddComponent<SimplePortalTraveler>();
     }
 
     public TechniqueType technique;

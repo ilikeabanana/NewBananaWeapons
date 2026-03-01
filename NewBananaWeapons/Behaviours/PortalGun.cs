@@ -35,6 +35,7 @@ public class PortalGun : BaseWeapon
     static ConfigVar<bool> changeGravity;
     public static ConfigVar<float> aspectRatio;
     public static ConfigVar<float> sizeMult;
+    public static ConfigVar<float> range;
     static ConfigVar<Color> portal1Color;
     static ConfigVar<Color> portal2Color;
 
@@ -65,6 +66,7 @@ public class PortalGun : BaseWeapon
     {
         changeGravity = new ConfigVar<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
         sizeMult = new ConfigVar<float>(sectionName, "Size Mult", 1, "Change how big a portal is (requires level restart)");
+        range = new ConfigVar<float>(sectionName, "Range", 100, "How far you can shoot");
         aspectRatio = new ConfigVar<float>(sectionName, "Aspect Ratio", 2f, "Height-to-width ratio of the portal (default 2 = classic Portal look, requires level restart)");
         portal1Color = new ConfigVar<Color>(sectionName, "Portal 1 Color", new Color(0.153f, 0.655f, 0.847f), "Color portal 1 uses (requires level restart)");
         portal2Color = new ConfigVar<Color>(sectionName, "Portal 2 Color", new Color(1.0f, 0.604f, 0.0f), "Color portal 2 uses (requires level restart)");
@@ -308,7 +310,7 @@ public class PortalGun : BaseWeapon
             Transform camTrans = CameraController.Instance.transform;
             PhysicsCastResult hit;
 
-            if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, out hit, 100, LayerMaskDefaults.Get(LMD.Environment)))
+            if (PortalPhysicsV2.Raycast(camTrans.position, camTrans.forward, out hit, range.Value, LayerMaskDefaults.Get(LMD.Environment)))
             {
                 return hit;
             }

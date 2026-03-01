@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TMPro;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
@@ -53,6 +54,7 @@ public class WordProjectile : MonoBehaviour
 
     private void Start()
     {
+        gameObject.AddComponent<SimplePortalTraveler>();
         StringBuilder fullWord = new StringBuilder();
         foreach (var adj in Adjectives)
         {

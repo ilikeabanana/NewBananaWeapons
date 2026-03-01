@@ -1,5 +1,6 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
@@ -11,6 +12,7 @@ public class TableProjectile : MonoBehaviour
     public bool parried = false;
     private void Awake()
     {
+        gameObject.AddComponent<SimplePortalTraveler>();
         damage = TableWeapon.baseDamage.Value;
         rb = GetComponent<Rigidbody>();
     }

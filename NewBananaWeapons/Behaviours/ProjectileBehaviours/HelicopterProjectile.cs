@@ -1,11 +1,18 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
 public class HelicopterProjectile : MonoBehaviour
 {
     float speed = 270;
+
+    void Awake()
+    {
+        gameObject.AddComponent<SimplePortalTraveler>();
+    }
+
     // Update is called once per frame
     void Update()
     {

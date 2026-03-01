@@ -1,6 +1,7 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
 using System.Collections.Generic;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
@@ -12,7 +13,10 @@ public class MaxwellProjectile : MonoBehaviour
     float timer = 0;
     bool goBackToPlayer = false;
     bool goToThePosition = true;
-
+    void Awake()
+    {
+        gameObject.AddComponent<SimplePortalTraveler>();
+    }
     void Update()
     {
         HandleTiming();

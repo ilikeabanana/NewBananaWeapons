@@ -1,5 +1,6 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
@@ -10,6 +11,7 @@ public class Rocket : MonoBehaviour
 
     void Start()
     {
+        gameObject.AddComponent<SimplePortalTraveler>();
         StartCoroutine(ShaderManager.ApplyShaderToGameObject(explosion));
 
         foreach (var exp in explosion.GetComponentsInChildren<Explosion>())

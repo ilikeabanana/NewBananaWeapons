@@ -1,5 +1,6 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
@@ -15,6 +16,9 @@ public class Bomb : MonoBehaviour
 
     void Start()
     {
+
+        gameObject.AddComponent<SimplePortalTraveler>();
+
         GetComponentInChildren<MeshRenderer>().material = new Material(GetComponentInChildren<MeshRenderer>().material);
 
         bombMat = GetComponentInChildren<MeshRenderer>().material;

@@ -1,5 +1,6 @@
 ﻿using NewBananaWeapons;
 using System.Collections;
+using ULTRAKILL.Portal;
 using UnityEngine;
 
 
@@ -7,6 +8,11 @@ public class Paintball : MonoBehaviour
 {
 
     float speed = 150f;
+
+    void Awake()
+    {
+        gameObject.AddComponent<SimplePortalTraveler>();
+    }
     // Update is called once per frame
     void Update()
     {
