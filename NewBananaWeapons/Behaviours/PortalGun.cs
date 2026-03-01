@@ -21,7 +21,7 @@ public class PortalGun : BaseWeapon
     // How far to nudge per iteration when a corner is invalid (metres)
     private const float SnapStepSize = 0.12f;
     // Maximum cumulative snapping distance before we give up
-    private const float MaxSnapDistance = 2.0f;
+    private const float MaxSnapDistance = 2.0f; 
 
     public AudioClip orangeSound;
     public AudioClip blueSound;
