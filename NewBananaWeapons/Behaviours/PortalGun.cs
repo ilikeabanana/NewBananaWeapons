@@ -39,6 +39,7 @@ public class PortalGun : BaseWeapon
 
     public void FireBlue()
     {
+        source.pitch = Random.Range(0.95f, 1.15f);
         orangeTube.SetActive(false);
         blueTube.SetActive(true);
         source.PlayOneShot(blueSound);
@@ -46,6 +47,7 @@ public class PortalGun : BaseWeapon
 
     public void FireOrange()
     {
+        source.pitch = Random.Range(0.95f, 1.15f);
         orangeTube.SetActive(true);
         blueTube.SetActive(false);
         source.PlayOneShot(orangeSound);

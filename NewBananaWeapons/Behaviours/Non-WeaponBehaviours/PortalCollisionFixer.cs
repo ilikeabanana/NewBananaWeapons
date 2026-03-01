@@ -17,9 +17,6 @@ public class PortalCollisionFixer : MonoBehaviour
     private bool partnerForced = false;
     private Coroutine reenableRoutine;
 
-
-
-
     // Tracks physics objects currently ghosting through this portal
     private List<Collider> ghostedPhysicsColliders = new List<Collider>();
 
@@ -97,18 +94,16 @@ public class PortalCollisionFixer : MonoBehaviour
 
     private void UpdatePhysicsObjectGhosting()
     {
-        // Find all rigidbodies within ghostRadius
         Vector3 halfExtents = new Vector3(
-            1.1f * transform.lossyScale.x,   // portal half-width  + margin
-            1.1f * transform.lossyScale.y,   // portal half-height + margin
-            ghostRadius * PortalGun.sizeMult.Value   // depth envelope
+            1.1f * transform.lossyScale.x,
+            1.1f * transform.lossyScale.y,
+            ghostRadius * PortalGun.sizeMult.Value
         );
         Collider[] nearby = Physics.OverlapBox(transform.position, halfExtents, transform.rotation);
         var newGhosted = new List<Collider>();
 
         foreach (Collider col in nearby)
         {
-            // Skip the player, portal's own colliders, and non-rigidbody objects
             if (col == playerCollider) continue;
             if (col.GetComponent<Rigidbody>() == null && col.GetComponentInParent<Rigidbody>() == null) continue;
             if (col.transform.IsChildOf(transform)) continue;
@@ -116,7 +111,6 @@ public class PortalCollisionFixer : MonoBehaviour
 
             newGhosted.Add(col);
 
-            // If not already ghosted, apply ignore
             if (!ghostedPhysicsColliders.Contains(col))
             {
                 foreach (Collider wall in wallColliders)
@@ -128,7 +122,6 @@ public class PortalCollisionFixer : MonoBehaviour
             }
         }
 
-        // Re-enable collision for objects that left the radius
         foreach (Collider col in ghostedPhysicsColliders)
         {
             if (col == null) continue;
@@ -194,11 +187,16 @@ public class PortalCollisionFixer : MonoBehaviour
                 {
                     NewMovement.Instance.gc.enabled = !ignore;
 
-                    // Reset ground state in BOTH directions - stale 'true' can persist across enable/disable
-                    foreach (var ggc in NewMovement.Instance.gc.instances)
+                    // FIX: only wipe ground state when STARTING to ghost (ignore=true).
+                    // Wiping on re-enable (ignore=false) causes a 1-frame gap where
+                    // gc is enabled but onGround=false -> walking-on-air bug.
+                    if (ignore)
                     {
-                        ggc.onGround = false;
-                        ggc.touchingGround = false;
+                        foreach (var ggc in NewMovement.Instance.gc.instances)
+                        {
+                            ggc.onGround = false;
+                            ggc.touchingGround = false;
+                        }
                     }
                 }
 
@@ -213,19 +211,19 @@ public class PortalCollisionFixer : MonoBehaviour
 
     private bool IsPlayerWithinPortalBounds(Collider col)
     {
-        // InverseTransformPoint handles position + rotation + scale,
-        // so the portal rectangle is always [-0.5, 0.5] on X and Y in local space.
-        Vector3 localPos = transform.InverseTransformPoint(col.bounds.center);
+        // FIX: for floor portals, check the bottom of the player's bounds instead of
+        // the center. The center exits the portal rectangle before the feet clear the
+        // hole, causing the floor layer to restore while the player is still inside -> fall through.
+        Vector3 checkPoint = isOnFloor
+            ? new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z)
+            : col.bounds.center;
 
-        // Small expansion so the ghosting kicks in just before the player hits the edge,
-        // preventing a 1-frame collision flash. Keep it modest (0.2 local units).
+        Vector3 localPos = transform.InverseTransformPoint(checkPoint);
+
         const float expand = 0.2f;
-
-        // Z is depth along the portal normal. The portal scale on Z is 1*sizeMult,
-        // so ghostRadius local units = ghostRadius*sizeMult world units — matches old behaviour.
-        return Mathf.Abs(localPos.x) < 1.2f + expand   // within portal width
-            && Mathf.Abs(localPos.y) < 1.2f + expand   // within portal height
-            && Mathf.Abs(localPos.z) < ghostRadius;     // within depth envelope
+        return Mathf.Abs(localPos.x) < 1.2f + expand
+            && Mathf.Abs(localPos.y) < 1.2f + expand
+            && Mathf.Abs(localPos.z) < ghostRadius;
     }
 
     void OnDestroy()
@@ -237,6 +235,22 @@ public class PortalCollisionFixer : MonoBehaviour
             {
                 if (wallColliders[i] != null)
                     Physics.IgnoreCollision(playerCollider, wallColliders[i], false);
+            }
+
+            // Restore gc/wc/vcb in case portal is destroyed while still ghosting
+            if (isOnFloor && NewMovement.Instance != null)
+            {
+                if (NewMovement.Instance.gc) NewMovement.Instance.gc.enabled = true;
+                if (NewMovement.Instance.wc) NewMovement.Instance.wc.enabled = true;
+                var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
+                if (vcb) vcb.enabled = true;
+
+                // Restore layers
+                for (int i = 0; i < targetWalls.Count; i++)
+                {
+                    if (targetWalls[i] != null)
+                        targetWalls[i].layer = wallLayers[i];
+                }
             }
         }
 
