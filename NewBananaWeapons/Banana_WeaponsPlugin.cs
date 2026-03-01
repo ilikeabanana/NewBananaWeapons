@@ -33,7 +33,7 @@ namespace NewBananaWeapons
 
         public static ConfigFile File;
 
-        GameObject funnySecret;
+        public static GameObject funnySecret;
         GameObject dttalkPrefab;
 
         public static Banana_WeaponsPlugin Instance { get; private set; }
@@ -434,30 +434,7 @@ namespace NewBananaWeapons
             }
 
             
-            if (funnySecret != null)
-            {
-                if (Input.GetKeyDown(KeyCode.F3))
-                {
-                    Vector3 pos = NewMovement.instance.transform.position;
-                    pos += Vector3.up * 100;
-                    pos += CameraController.Instance.transform.forward * 10;
-                    GameObject funny = Instantiate(funnySecret, pos, Quaternion.identity);
-
-                    StartCoroutine(ShaderManager.ApplyShaderToGameObject(funny));
-                }
-                if (Input.GetKeyDown(KeyCode.F4))
-                {
-                    for (int i = 0; i < 100; i++)
-                    {
-                        Vector3 pos = NewMovement.instance.transform.position;
-
-                        GameObject funny = Instantiate(funnySecret, pos, Quaternion.identity);
-
-                        StartCoroutine(ShaderManager.ApplyShaderToGameObject(funny));
-                    }
-                    
-                }
-            }
+            
 
             if (Input.GetKeyDown(KeyCode.Insert))
             {
@@ -719,6 +696,15 @@ namespace NewBananaWeapons
                     MonoSingleton<TimeController>.Instance.ParryFlash();
                     __instance.anim.Play("Hook", 0, 0.065f);
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerActivator), nameof(PlayerActivator.Activate))]
+        public class Notification
+        {
+            public static void Postfix()
+            {
+                HudMessageReceiver.Instance.SendHudMessage("You can change weapon configs and see descriptions of weapons in the configgy menu", delay: 1);
             }
         }
     }
