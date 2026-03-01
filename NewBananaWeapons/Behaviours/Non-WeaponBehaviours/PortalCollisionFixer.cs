@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using NewBananaWeapons;
+using HarmonyLib;
 
 public class PortalCollisionFixer : MonoBehaviour
 {
@@ -20,15 +21,36 @@ public class PortalCollisionFixer : MonoBehaviour
     // Tracks physics objects currently ghosting through this portal
     private List<Collider> ghostedPhysicsColliders = new List<Collider>();
 
+    // -------------------------------------------------------------------------
+    // Visualization settings
+    // -------------------------------------------------------------------------
+    public bool DEBUG = true;
+
+    // Face rectangle shape tweaks (local space, portal face is nominally ±1.2)
+    private const float VisHalfWidth = 1.35f;
+    private const float VisHalfTop = 1.0f;
+    private const float VisHalfBottom = 1.7f;
+
+    private const float LineWidthRect = 0.07f;
+    private const float LineWidthDepth = 0.04f;
+
+    private LineRenderer lrRect;
+    private LineRenderer lrDepthBox;
+
+    private static readonly Color ColIdle = new Color(0.2f, 0.8f, 1f, 0.6f);
+    private static readonly Color ColGhost = new Color(0.1f, 1f, 0.3f, 0.9f);
+    private static readonly Color ColFloor = new Color(1f, 0.7f, 0.1f, 0.8f);
+    // -------------------------------------------------------------------------
+
     public bool isGhosting => selfGhosting || partnerForced;
+
+    public static bool isInPortal;
 
     public bool isOnFloor
     {
         get
         {
-            if (placedOnWall == null) return false;
-            if (placedOnWall.tag == "Floor") return true;
-            return false;
+            return Mathf.Abs(Vector3.Dot(transform.forward, Vector3.up)) > 0.9f;
         }
     }
 
@@ -68,12 +90,14 @@ public class PortalCollisionFixer : MonoBehaviour
             foreach (Collider col in GetComponentsInChildren<Collider>())
                 Physics.IgnoreCollision(playerCollider, col, true);
         }
+
+        SetupVisuals();
     }
 
     void Update()
     {
         if (wallColliders.Count == 0) return;
-
+        isInPortal = isGhosting;
         // --- Player ghosting ---
         if (playerCollider != null)
         {
@@ -90,7 +114,96 @@ public class PortalCollisionFixer : MonoBehaviour
 
         // --- Physics object ghosting ---
         UpdatePhysicsObjectGhosting();
+
+        // --- Visuals ---
+        if (DEBUG) UpdateVisuals();
     }
+
+    // -------------------------------------------------------------------------
+    // Visualization
+    // -------------------------------------------------------------------------
+
+    private void SetupVisuals()
+    {
+        if (lrRect != null) Destroy(lrRect.gameObject);
+        if (lrDepthBox != null) Destroy(lrDepthBox.gameObject);
+
+        if (!DEBUG) return;
+
+        lrRect = CreateLineRenderer("PortalBounds_Rect", LineWidthRect, 5);
+        lrDepthBox = CreateLineRenderer("PortalBounds_Depth", LineWidthDepth, 16);
+
+        UpdateVisuals();
+    }
+
+    private LineRenderer CreateLineRenderer(string goName, float width, int pointCount)
+    {
+        GameObject go = new GameObject(goName);
+        go.transform.SetParent(transform, false);
+        LineRenderer lr = go.AddComponent<LineRenderer>();
+        lr.useWorldSpace = true;
+        lr.loop = false;
+        lr.positionCount = pointCount;
+        lr.startWidth = width;
+        lr.endWidth = width;
+        lr.material = new Material(Shader.Find("Sprites/Default"));
+        lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        lr.receiveShadows = false;
+        return lr;
+    }
+
+    private void UpdateVisuals()
+    {
+        if (lrRect == null || lrDepthBox == null) return;
+
+        // Build axes manually so width/height scale with the portal but depth doesn't.
+        Vector3 origin = transform.position;
+        Vector3 right = transform.right * transform.lossyScale.x;
+        Vector3 up = transform.up * transform.lossyScale.y;
+        Vector3 forward = transform.forward; // unit vector — we control depth ourselves
+
+        // --- Face rectangle ---
+        Vector3 TL = origin + right * (-VisHalfWidth) + up * VisHalfTop;
+        Vector3 TR = origin + right * VisHalfWidth + up * VisHalfTop;
+        Vector3 BR = origin + right * VisHalfWidth + up * -VisHalfBottom;
+        Vector3 BL = origin + right * (-VisHalfWidth) + up * -VisHalfBottom;
+
+        lrRect.SetPositions(new Vector3[] { TL, TR, BR, BL, TL });
+
+        // --- Depth envelope ---
+        // IsPlayerWithinPortalBounds checks localPos.z < ghostRadius.
+        // InverseTransformPoint divides by lossyScale.z, so the actual world-space
+        // depth is ghostRadius * lossyScale.z. Use exactly that so visual == actual.
+        float d = ghostRadius * transform.lossyScale.z;
+
+        Vector3 ftl = TL + forward * d;
+        Vector3 ftr = TR + forward * d;
+        Vector3 fbr = BR + forward * d;
+        Vector3 fbl = BL + forward * d;
+        Vector3 btl = TL + forward * -d;
+        Vector3 btr = TR + forward * -d;
+        Vector3 bbr = BR + forward * -d;
+        Vector3 bbl = BL + forward * -d;
+
+        lrDepthBox.SetPositions(new Vector3[]
+        {
+            ftl, ftr, fbr, fbl, ftl,   // front face  (5)
+            btl, btr, bbr, bbl, btl,   // back  face  (5)
+            ftl, btl,                  // edge TL     (2)
+            ftr, btr,                  // edge TR     (2)
+            fbr, bbr                   // edge BR     (2)
+        });
+
+        // --- Colour ---
+        Color c = isGhosting ? ColGhost : (isOnFloor ? ColFloor : ColIdle);
+
+        lrRect.startColor = c;
+        lrRect.endColor = c;
+        lrDepthBox.startColor = new Color(c.r, c.g, c.b, c.a * 0.4f);
+        lrDepthBox.endColor = new Color(c.r, c.g, c.b, c.a * 0.4f);
+    }
+
+    // -------------------------------------------------------------------------
 
     private void UpdatePhysicsObjectGhosting()
     {
@@ -179,17 +292,16 @@ public class PortalCollisionFixer : MonoBehaviour
             if (wallColliders[i] == null) continue;
             Physics.IgnoreCollision(playerCollider, wallColliders[i], ignore);
 
+            //NewMovement.Instance.GetComponent<Collider>().isTrigger = !ignore;
+
             if (isOnFloor)
             {
                 targetWalls[i].layer = ignore ? 0 : wallLayers[i];
-
+                /*
                 if (NewMovement.Instance.gc)
                 {
                     NewMovement.Instance.gc.enabled = !ignore;
 
-                    // FIX: only wipe ground state when STARTING to ghost (ignore=true).
-                    // Wiping on re-enable (ignore=false) causes a 1-frame gap where
-                    // gc is enabled but onGround=false -> walking-on-air bug.
                     if (ignore)
                     {
                         foreach (var ggc in NewMovement.Instance.gc.instances)
@@ -198,7 +310,7 @@ public class PortalCollisionFixer : MonoBehaviour
                             ggc.touchingGround = false;
                         }
                     }
-                }
+                }*/
 
                 if (NewMovement.Instance.wc) NewMovement.Instance.wc.enabled = !ignore;
                 var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
@@ -211,9 +323,6 @@ public class PortalCollisionFixer : MonoBehaviour
 
     private bool IsPlayerWithinPortalBounds(Collider col)
     {
-        // FIX: for floor portals, check the bottom of the player's bounds instead of
-        // the center. The center exits the portal rectangle before the feet clear the
-        // hole, causing the floor layer to restore while the player is still inside -> fall through.
         Vector3 checkPoint = isOnFloor
             ? new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z)
             : col.bounds.center;
@@ -228,7 +337,6 @@ public class PortalCollisionFixer : MonoBehaviour
 
     void OnDestroy()
     {
-        // Restore player collision
         if (playerCollider != null)
         {
             for (int i = 0; i < wallColliders.Count; i++)
@@ -237,7 +345,6 @@ public class PortalCollisionFixer : MonoBehaviour
                     Physics.IgnoreCollision(playerCollider, wallColliders[i], false);
             }
 
-            // Restore gc/wc/vcb in case portal is destroyed while still ghosting
             if (isOnFloor && NewMovement.Instance != null)
             {
                 if (NewMovement.Instance.gc) NewMovement.Instance.gc.enabled = true;
@@ -245,7 +352,6 @@ public class PortalCollisionFixer : MonoBehaviour
                 var vcb = NewMovement.Instance.GetComponent<VerticalClippingBlocker>();
                 if (vcb) vcb.enabled = true;
 
-                // Restore layers
                 for (int i = 0; i < targetWalls.Count; i++)
                 {
                     if (targetWalls[i] != null)
@@ -254,7 +360,6 @@ public class PortalCollisionFixer : MonoBehaviour
             }
         }
 
-        // Restore physics object collisions
         foreach (Collider col in ghostedPhysicsColliders)
         {
             if (col == null) continue;
@@ -265,5 +370,19 @@ public class PortalCollisionFixer : MonoBehaviour
             }
         }
         ghostedPhysicsColliders.Clear();
+    }
+
+    [HarmonyPatch(typeof(GroundCheckGroup), nameof(GroundCheckGroup.onGround), MethodType.Getter)]
+    public class DontBeGroundedInPortales
+    {
+        public static bool Prefix(ref bool __result)
+        {
+            if (isInPortal)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
     }
 }

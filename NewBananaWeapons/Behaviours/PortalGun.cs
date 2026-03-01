@@ -35,6 +35,8 @@ public class PortalGun : BaseWeapon
     static ConfigVar<bool> changeGravity;
     public static ConfigVar<float> aspectRatio;
     public static ConfigVar<float> sizeMult;
+    static ConfigVar<Color> portal1Color;
+    static ConfigVar<Color> portal2Color;
 
 
     public void FireBlue()
@@ -64,6 +66,8 @@ public class PortalGun : BaseWeapon
         changeGravity = new ConfigVar<bool>(sectionName, "Gravity Changing Portals", false, "When going through a portal, allow it to change your gravity (requires level restart)");
         sizeMult = new ConfigVar<float>(sectionName, "Size Mult", 1, "Change how big a portal is (requires level restart)");
         aspectRatio = new ConfigVar<float>(sectionName, "Aspect Ratio", 2f, "Height-to-width ratio of the portal (default 2 = classic Portal look, requires level restart)");
+        portal1Color = new ConfigVar<Color>(sectionName, "Portal 1 Color", new Color(0.153f, 0.655f, 0.847f), "Color portal 1 uses (requires level restart)");
+        portal2Color = new ConfigVar<Color>(sectionName, "Portal 2 Color", new Color(1.0f, 0.604f, 0.0f), "Color portal 2 uses (requires level restart)");
     }
 
 
@@ -90,7 +94,7 @@ public class PortalGun : BaseWeapon
             FireBlue();
             anim.SetInteger("Int", (int)Random.Range(0, 1));
             anim.SetTrigger("Shoot");
-            UpdatePortal(ref quad1, ref quad1Outline, "Portal_Entry", hit, new Color(0.153f, 0.655f, 0.847f));
+            UpdatePortal(ref quad1, ref quad1Outline, "Portal_Entry", hit, portal1Color.Value);
             if (quad2 != null && !alrSetupPortals) SetupPortals();
         }
         else if (InputManager.Instance.InputSource.Fire2.WasPerformedThisFrame)
@@ -98,7 +102,7 @@ public class PortalGun : BaseWeapon
             FireOrange();
             anim.SetInteger("Int", (int)Random.Range(0, 1));
             anim.SetTrigger("Shoot"); 
-            UpdatePortal(ref quad2, ref quad2Outline, "Portal_Exit", hit, new Color(1.0f, 0.604f, 0.0f));
+            UpdatePortal(ref quad2, ref quad2Outline, "Portal_Exit", hit, portal2Color.Value);
             if (quad1 != null && !alrSetupPortals) SetupPortals();
         }
     }
