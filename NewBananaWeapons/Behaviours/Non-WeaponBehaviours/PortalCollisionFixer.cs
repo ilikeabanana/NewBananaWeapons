@@ -24,14 +24,14 @@ public class PortalCollisionFixer : MonoBehaviour
     // -------------------------------------------------------------------------
     // Visualization settings
     // -------------------------------------------------------------------------
-    public bool DEBUG = true;
+    public bool DEBUG = false;
 
     // Face rectangle shape tweaks (local space, portal face is nominally ±1.2)
     private const float VisHalfWidth = 1.35f;
     private const float VisHalfTop = 1.0f;
     private const float VisHalfBottom = 1.7f;
 
-    private const float LineWidthRect = 0.07f;
+    private const float LineWidthRect = 0.07f; 
     private const float LineWidthDepth = 0.04f;
 
     private LineRenderer lrRect;

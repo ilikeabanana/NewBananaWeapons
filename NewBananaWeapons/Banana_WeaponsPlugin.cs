@@ -699,11 +699,23 @@ namespace NewBananaWeapons
             }
         }
 
-        [HarmonyPatch(typeof(PlayerActivator), nameof(PlayerActivator.Activate))]
-        public class Notification
+        [HarmonyPatch(typeof(GunSetter), nameof(GunSetter.ResetWeapons))]
+        public static class GunSetter_ResetWeapons_Patch
         {
             public static void Postfix()
             {
+                addedWeapons.Clear();
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerActivator), nameof(PlayerActivator.Activate))]
+        public class Notification
+        {
+            static bool alrDone = false;
+            public static void Postfix()
+            {
+                if (alrDone) return;
+                alrDone = true;
                 HudMessageReceiver.Instance.SendHudMessage("You can change weapon configs and see descriptions of weapons in the configgy menu", delay: 1);
             }
         }
