@@ -12,7 +12,7 @@ public class PortalCollisionFixer : MonoBehaviour
     private List<int> wallLayers = new List<int>();
     private Collider playerCollider;
     public float ghostRadius = 2.5f;
-    public float reenableDelay = 0.05f;
+    public float reenableDelay = 0.005f;
     public PortalCollisionFixer partner;
     private bool selfGhosting = false;
     private bool partnerForced = false;
@@ -24,7 +24,6 @@ public class PortalCollisionFixer : MonoBehaviour
     // -------------------------------------------------------------------------
     // Visualization settings
     // -------------------------------------------------------------------------
-    public bool DEBUG = false;
 
     // Face rectangle shape tweaks (local space, portal face is nominally ±1.2)
     private const float VisHalfWidth = 1.35f;
@@ -50,9 +49,19 @@ public class PortalCollisionFixer : MonoBehaviour
     {
         get
         {
-            return Mathf.Abs(Vector3.Dot(transform.forward, Vector3.up)) > 0.9f;
+            return Vector3.Dot(transform.forward, Vector3.up) < -0.9f;
         }
     }
+
+
+    private float ForwardDepth
+    {
+        get
+        {
+            return isOnFloor ? 999f : ghostRadius;
+        }
+    }
+
 
     public void FixCols()
     {
@@ -116,7 +125,7 @@ public class PortalCollisionFixer : MonoBehaviour
         UpdatePhysicsObjectGhosting();
 
         // --- Visuals ---
-        if (DEBUG) UpdateVisuals();
+        if (PortalGun.DEBUG.Value) UpdateVisuals();
     }
 
     // -------------------------------------------------------------------------
@@ -128,7 +137,7 @@ public class PortalCollisionFixer : MonoBehaviour
         if (lrRect != null) Destroy(lrRect.gameObject);
         if (lrDepthBox != null) Destroy(lrDepthBox.gameObject);
 
-        if (!DEBUG) return;
+        if (!PortalGun.DEBUG.Value) return;
 
         lrRect = CreateLineRenderer("PortalBounds_Rect", LineWidthRect, 5);
         lrDepthBox = CreateLineRenderer("PortalBounds_Depth", LineWidthDepth, 16);
@@ -174,7 +183,7 @@ public class PortalCollisionFixer : MonoBehaviour
         // IsPlayerWithinPortalBounds checks localPos.z < ghostRadius.
         // InverseTransformPoint divides by lossyScale.z, so the actual world-space
         // depth is ghostRadius * lossyScale.z. Use exactly that so visual == actual.
-        float d = ghostRadius * transform.lossyScale.z;
+        float d = ForwardDepth * transform.lossyScale.z;
 
         Vector3 ftl = TL + forward * d;
         Vector3 ftr = TR + forward * d;
@@ -210,7 +219,7 @@ public class PortalCollisionFixer : MonoBehaviour
         Vector3 halfExtents = new Vector3(
             1.1f * transform.lossyScale.x,
             1.1f * transform.lossyScale.y,
-            ghostRadius * PortalGun.sizeMult.Value
+            ForwardDepth * PortalGun.sizeMult.Value
         );
         Collider[] nearby = Physics.OverlapBox(transform.position, halfExtents, transform.rotation);
         var newGhosted = new List<Collider>();
@@ -332,8 +341,9 @@ public class PortalCollisionFixer : MonoBehaviour
         const float expand = 0.2f;
         return Mathf.Abs(localPos.x) < 1.2f + expand
             && Mathf.Abs(localPos.y) < 1.2f + expand
-            && Mathf.Abs(localPos.z) < ghostRadius;
+            && Mathf.Abs(localPos.z) < ForwardDepth;
     }
+
 
     void OnDestroy()
     {

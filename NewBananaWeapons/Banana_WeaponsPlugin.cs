@@ -43,11 +43,21 @@ namespace NewBananaWeapons
 
         public static Dictionary<GameObject, ConfigEntry<bool>> WeaponsEnabled = new Dictionary<GameObject, ConfigEntry<bool>>();
         public Dictionary<GameObject, ConfigEntry<int>> WeaponsSlots = new Dictionary<GameObject, ConfigEntry<int>>();
+
+        bool slot7Exists;
+        bool slot8Exists;
+        bool slot9Exists;
+        bool slot10Exists;
+
+
         private void Awake()
         {
             File = Config;
             Instance = this;
             gameObject.hideFlags = HideFlags.DontSaveInEditor;
+
+            int seed = "This is my cool seed".GetHashCode(); // funny
+            System.Random rng = new System.Random(seed);
 
             try
             {
@@ -160,8 +170,8 @@ namespace NewBananaWeapons
                                 sectionName = wicn.weaponDescriptor.weaponName;
                             }
                             string weaponDescrip = "Enables the weapon";
-                            
-                            WeaponsSlots.Add(asset, Config.Bind<int>(sectionName, "Slot", 6, "1 is minimum, 6 is max"));
+                            int slot = rng.Next(6, 11);
+                            WeaponsSlots.Add(asset, Config.Bind<int>(sectionName, "Slot", slot, "1 is minimum, 10 is max"));
                             if (asset.GetComponentInChildren<BaseWeapon>())
                             {
                                 weaponDescrip = asset.GetComponentInChildren<BaseWeapon>().GetWeaponDescription();
@@ -253,27 +263,36 @@ namespace NewBananaWeapons
         }
 
 
+        // Helper — call this before any slots[i] access
+        static void EnsureSlotExists(GunControl gc, int index)
+        {
+            while (gc.slots.Count <= index)
+                gc.slots.Add(new List<GameObject>());
+        }
+
 
         private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
+            // Reset these - they'll be re-evaluated in MakeGun when actually needed
+            slot7Exists = false;
+            slot8Exists = false;
+            slot9Exists = false;
+            slot10Exists = false;
+
             addedArms.Clear();
             addedWeapons.Clear();
             cooldowns.Clear();
-            if (AddressableManager.lightningBoltWindup == null)
-            {
-                AddressableManager.GetAssets();
-            }
-            if (ShaderManager.shaderDictionary.Count == 0)
-            {
-                StartCoroutine(ShaderManager.LoadShadersAsync());
-            }
 
-            // Instantiate dttalk prefab every scene
+            if (AddressableManager.lightningBoltWindup == null)
+                AddressableManager.GetAssets();
+
+            if (ShaderManager.shaderDictionary.Count == 0)
+                StartCoroutine(ShaderManager.LoadShadersAsync());
+
             if (dttalkPrefab != null)
             {
                 GameObject dttalkInstance = Instantiate(dttalkPrefab);
                 StartCoroutine(ShaderManager.ApplyShaderToGameObject(dttalkInstance));
-
             }
         }
 
@@ -357,6 +376,17 @@ namespace NewBananaWeapons
             {
                 // Checking everything so we dont get any errors
                 bool flag3 = !MonoSingleton<GunControl>.Instance.enabled || !MonoSingleton<StyleHUD>.Instance.enabled;
+
+                // Safe to expand slots now — GunControl.Start() has already populated slot1-6
+                EnsureSlotExists(MonoSingleton<GunControl>.Instance, num);
+
+                // Update slotXExists flags now that slots are real
+                var gc = MonoSingleton<GunControl>.Instance;
+                if (gc.slots.Count > 6 && gc.slots[6].Count > 0) Instance.slot7Exists = true;
+                if (gc.slots.Count > 7 && gc.slots[7].Count > 0) Instance.slot8Exists = true;
+                if (gc.slots.Count > 8 && gc.slots[8].Count > 0) Instance.slot9Exists = true;
+                if (gc.slots.Count > 9 && gc.slots[9].Count > 0) Instance.slot10Exists = true;
+
                 bool flag4 = flag3;
                 if (flag4)
                 {
@@ -455,6 +485,24 @@ namespace NewBananaWeapons
 
                 AddArm(mockArm);
             }
+
+            #region INPUT
+            if (Input.GetKeyDown(KeyCode.Alpha7))
+            {
+                GunControl.Instance.SwitchWeapon(6);
+            } else if (Input.GetKeyDown(KeyCode.Alpha8))
+            {
+                GunControl.Instance.SwitchWeapon(7);
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha9))
+            {
+                GunControl.Instance.SwitchWeapon(8);
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha0))
+            {
+                GunControl.Instance.SwitchWeapon(9);
+            }
+            #endregion
 
             if (BundleArms == null || BundleArms.Count == 0) return;
             foreach (GameObject obj in BundleArms)
