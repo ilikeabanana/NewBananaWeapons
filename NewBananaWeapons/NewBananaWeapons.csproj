@@ -94,7 +94,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y /d &quot;$(TargetPath)&quot; &quot;C:\Users\MichielLievenVDeBack\AppData\Roaming\r2modmanPlus-local\ULTRAKILL\profiles\NewBananaWeapons\BepInEx\plugins\&quot;&#xA;" />
+    <Exec Command="xcopy /y /d &quot;$(TargetPath)&quot; &quot;C:\Users\michi\AppData\Roaming\r2modmanPlus-local\ULTRAKILL\profiles\NewBananaWeapons\BepInEx\plugins\&quot;&#xA;" />
   </Target>
 
 </Project>
