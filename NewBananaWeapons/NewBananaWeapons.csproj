@@ -38,13 +38,13 @@
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>C:\Users\MichielLievenVDeBack\AppData\Roaming\r2modmanPlus-local\ULTRAKILL\profiles\NewBananaWeapons\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>C:\Users\michi\AppData\Roaming\r2modmanPlus-local\ULTRAKILL\profiles\NewBananaWeapons\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\ULTRAKILL\ULTRAKILL_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>C:\Users\MichielLievenVDeBack\AppData\Roaming\r2modmanPlus-local\ULTRAKILL\profiles\NewBananaWeapons\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>C:\Users\michi\AppData\Roaming\r2modmanPlus-local\ULTRAKILL\profiles\NewBananaWeapons\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Addressables">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\ULTRAKILL\ULTRAKILL_Data\Managed\Unity.Addressables.dll</HintPath>
